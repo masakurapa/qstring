@@ -55,7 +55,7 @@ func (v *values) add(key string, r reflect.Value) (err error) {
 	case reflect.Map:
 		err = v.addMap(key, r)
 	case reflect.Array, reflect.Slice:
-		v.addArray(key, r)
+		err = v.addArray(key, r)
 	case reflect.String:
 		v.v.Add(key, r.String())
 	default:
@@ -75,22 +75,31 @@ func (v *values) addMap(key string, r reflect.Value) error {
 		mapKey := key + "[" + iter.Key().String() + "]"
 		m := iter.Value()
 		if m.Kind() == reflect.Interface {
-			v.add(mapKey, reflect.ValueOf((m.Interface())))
+			if err := v.add(mapKey, reflect.ValueOf((m.Interface()))); err != nil {
+				return err
+			}
 			continue
 		}
-		v.add(mapKey, m)
+		if err := v.add(mapKey, m); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func (v *values) addArray(key string, r reflect.Value) {
+func (v *values) addArray(key string, r reflect.Value) error {
 	arrKey := key + "[]"
 	for i := 0; i < r.Len(); i++ {
 		s := r.Index(i)
 		if s.Kind() == reflect.Interface {
-			v.add(arrKey, reflect.ValueOf((s.Interface())))
+			if err := v.add(arrKey, reflect.ValueOf((s.Interface()))); err != nil {
+				return err
+			}
 			continue
 		}
-		v.add(arrKey, s)
+		if err := v.add(arrKey, s); err != nil {
+			return err
+		}
 	}
+	return nil
 }
