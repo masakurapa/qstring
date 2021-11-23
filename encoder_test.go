@@ -45,6 +45,18 @@ func TestQ_Encode(t *testing.T) {
 			// map type
 			{name: "map type (string)", q: qstringer.Q{"key": map[string]string{"key1": "1", "key2": "2", "key3": "3"}}, expected: "?key%5Bkey1%5D=1&key%5Bkey2%5D=2&key%5Bkey3%5D=3"},
 			{name: "map type (interface)", q: qstringer.Q{"key": qstringer.MapQ{"key1": 1, "key2": "2", "key3": true}}, expected: "?key%5Bkey1%5D=1&key%5Bkey2%5D=2&key%5Bkey3%5D=true"},
+
+			// map type inside slice type
+			{name: "slice type (interface)", q: qstringer.Q{"key": qstringer.ArrayQ{
+				map[string]string{"key1": "1", "key2": "2", "key3": "3"},
+				qstringer.MapQ{"key1": 1, "key2": "2", "key3": true},
+			}}, expected: "?key%5B0%5D%5Bkey1%5D=1&key%5B0%5D%5Bkey2%5D=2&key%5B0%5D%5Bkey3%5D=3&key%5B1%5D%5Bkey1%5D=1&key%5B1%5D%5Bkey2%5D=2&key%5B1%5D%5Bkey3%5D=true"},
+
+			// slice type inside map type
+			{name: "slice type (interface)", q: qstringer.Q{"key": qstringer.MapQ{
+				"key1": []string{"1", "2", "3"},
+				"key2": qstringer.ArrayQ{1, "2", true},
+			}}, expected: "?key%5Bkey1%5D%5B0%5D=1&key%5Bkey1%5D%5B1%5D=2&key%5Bkey1%5D%5B2%5D=3&key%5Bkey2%5D%5B0%5D=1&key%5Bkey2%5D%5B1%5D=2&key%5Bkey2%5D%5B2%5D=true"},
 		}
 
 		for _, tc := range testCases {
