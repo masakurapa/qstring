@@ -37,11 +37,11 @@ func TestQ_Encode(t *testing.T) {
 			// string type
 			{name: "string type", q: qstringer.Q{"key": "hoge"}, expected: "?key=hoge"},
 			// array type
-			{name: "array type (string)", q: qstringer.Q{"key": [3]string{"1", "2", "3"}}, expected: "?key%5B%5D=1&key%5B%5D=2&key%5B%5D=3"},
-			{name: "array type (interface)", q: qstringer.Q{"key": [3]interface{}{1, "2", true}}, expected: "?key%5B%5D=1&key%5B%5D=2&key%5B%5D=true"},
+			{name: "array type (string)", q: qstringer.Q{"key": [3]string{"1", "2", "3"}}, expected: "?key%5B0%5D=1&key%5B1%5D=2&key%5B2%5D=3"},
+			{name: "array type (interface)", q: qstringer.Q{"key": [3]interface{}{1, "2", true}}, expected: "?key%5B0%5D=1&key%5B1%5D=2&key%5B2%5D=true"},
 			// slice type
-			{name: "slice type (string)", q: qstringer.Q{"key": []string{"1", "2", "3"}}, expected: "?key%5B%5D=1&key%5B%5D=2&key%5B%5D=3"},
-			{name: "slice type (interface)", q: qstringer.Q{"key": qstringer.ArrayQ{1, "2", true}}, expected: "?key%5B%5D=1&key%5B%5D=2&key%5B%5D=true"},
+			{name: "slice type (string)", q: qstringer.Q{"key": []string{"1", "2", "3"}}, expected: "?key%5B0%5D=1&key%5B1%5D=2&key%5B2%5D=3"},
+			{name: "slice type (interface)", q: qstringer.Q{"key": qstringer.ArrayQ{1, "2", true}}, expected: "?key%5B0%5D=1&key%5B1%5D=2&key%5B2%5D=true"},
 			// map type
 			{name: "map type (string)", q: qstringer.Q{"key": map[string]string{"key1": "1", "key2": "2", "key3": "3"}}, expected: "?key%5Bkey1%5D=1&key%5Bkey2%5D=2&key%5Bkey3%5D=3"},
 			{name: "map type (interface)", q: qstringer.Q{"key": qstringer.MapQ{"key1": 1, "key2": "2", "key3": true}}, expected: "?key%5Bkey1%5D=1&key%5Bkey2%5D=2&key%5Bkey3%5D=true"},

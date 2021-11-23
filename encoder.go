@@ -88,8 +88,8 @@ func (v *values) addMap(key string, r reflect.Value) error {
 }
 
 func (v *values) addArray(key string, r reflect.Value) error {
-	arrKey := key + "[]"
 	for i := 0; i < r.Len(); i++ {
+		arrKey := fmt.Sprintf("%s[%d]", key, i)
 		s := r.Index(i)
 		if s.Kind() == reflect.Interface {
 			if err := v.add(arrKey, reflect.ValueOf((s.Interface()))); err != nil {
