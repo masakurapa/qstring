@@ -8,7 +8,7 @@ import (
 	"github.com/masakurapa/qstringer"
 )
 
-func TestQstringer(t *testing.T) {
+func TestQ_Encode(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		testCases := []struct {
 			name     string
