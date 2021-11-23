@@ -77,7 +77,7 @@ func TestQstringer(t *testing.T) {
 			{name: "chan type", q: qstringer.Q{"key": make(chan int)}, err: fmt.Errorf("type chan is not available (key: key)")},
 			{name: "func type", q: qstringer.Q{"key": func() {}}, err: fmt.Errorf("type func is not available (key: key)")},
 			{name: "ptr type", q: qstringer.Q{"key": func() *string { return nil }()}, err: fmt.Errorf("type ptr is not available (key: key)")},
-			{name: "struct type", q: qstringer.Q{"key": struct{}{}}, err: fmt.Errorf("type complex128 is not available (key: key)")},
+			{name: "struct type", q: qstringer.Q{"key": struct{}{}}, err: fmt.Errorf("type struct is not available (key: key)")},
 			{name: "unsafe pointer type", q: qstringer.Q{"key": unsafe.Pointer(&v)}, err: fmt.Errorf("type unsafe.Pointer is not available (key: key)")},
 		}
 
