@@ -10,10 +10,11 @@ import (
 )
 
 type s struct {
-	FieldB  bool
-	FieldI  int
-	JSONStr string
-	// JSONStrP    *string
+	FieldB      bool
+	FieldI      int
+	FieldUIP    *uint
+	JSONStr     string
+	JSONStrP    *string
 	Struct2     s2
 	Slice4Str   []string
 	Map_Str_Str map[string]string
@@ -26,11 +27,14 @@ type s2 struct {
 
 func TestEncode(t *testing.T) {
 	v := "1"
+	var uv uint = 200
+
 	sv := s{
-		FieldB:  true,
-		FieldI:  100,
-		JSONStr: "hoge",
-		// JSONStrP:    &v,
+		FieldB:      true,
+		FieldI:      100,
+		FieldUIP:    &uv,
+		JSONStr:     "hoge",
+		JSONStrP:    &v,
 		Struct2:     s2{Field: "fuga"},
 		Slice4Str:   []string{"1", "3", "5"},
 		Map_Str_Str: map[string]string{"k1": "2", "k2": "4", "k3": "6"},
@@ -96,6 +100,11 @@ func TestEncode(t *testing.T) {
 		{name: "map value type is float32", q: qstringer.Q{"key": float32(123.456)}, expected: "?key=123.456"},
 		// map value type is string
 		{name: "map value type is string", q: qstringer.Q{"key": "hoge"}, expected: "?key=hoge"},
+		// map value type is ptr
+		{name: "map value type is ptr", q: qstringer.Q{"key": func() *string {
+			s := "pointer"
+			return &s
+		}()}, expected: "?key=pointer"},
 		// map value type is array
 		{name: "map value type is array (string)", q: qstringer.Q{"key": [3]string{"1", "2", "3"}}, expected: "?key[0]=1&key[1]=2&key[2]=3"},
 		{name: "map value type is array (interface)", q: qstringer.Q{"key": [3]interface{}{1, "2", true}}, expected: "?key[0]=1&key[1]=2&key[2]=true"},
@@ -129,7 +138,6 @@ func TestEncode(t *testing.T) {
 		{name: "map value type is complex128", q: qstringer.Q{"key": complex128(1)}, err: fmt.Errorf("type complex128 is not available (key: key)")},
 		{name: "map value type is chan", q: qstringer.Q{"key": make(chan int)}, err: fmt.Errorf("type chan is not available (key: key)")},
 		{name: "map value type is func", q: qstringer.Q{"key": func() {}}, err: fmt.Errorf("type func is not available (key: key)")},
-		{name: "map value type is ptr", q: qstringer.Q{"key": func() *string { return nil }()}, err: fmt.Errorf("type ptr is not available (key: key)")},
 		{
 			name:    "map value type is struct",
 			q:       qstringer.Q{"key": sv},
@@ -137,7 +145,9 @@ func TestEncode(t *testing.T) {
 			expected: "?" + strings.Join([]string{
 				"key[fieldB]=true",
 				"key[fieldI]=100",
+				"key[fieldUip]=200",
 				"key[interface]=gumi",
+				"key[jsonStrP]=1",
 				"key[jsonStr]=hoge",
 				"key[mapStrStr][k1]=2&key[mapStrStr][k2]=4&key[mapStrStr][k3]=6",
 				"key[slice4Str][0]=1&key[slice4Str][1]=3&key[slice4Str][2]=5",
@@ -186,8 +196,10 @@ func TestEncode(t *testing.T) {
 			expected: "?" + strings.Join([]string{
 				"fieldB=false",
 				"fieldI=0",
+				"fieldUip=",
 				"interface=",
 				"jsonStr=",
+				"jsonStrP=",
 				"mapStrStr=",
 				"slice4Str=",
 				"struct2[field]=",
@@ -200,8 +212,10 @@ func TestEncode(t *testing.T) {
 			expected: "?" + strings.Join([]string{
 				"fieldB=true",
 				"fieldI=100",
+				"fieldUip=200",
 				"interface=gumi",
 				"jsonStr=hoge",
+				"jsonStrP=1",
 				"mapStrStr[k1]=2&mapStrStr[k2]=4&mapStrStr[k3]=6",
 				"slice4Str[0]=1&slice4Str[1]=3&slice4Str[2]=5",
 				"struct2[field]=fuga",
@@ -214,8 +228,10 @@ func TestEncode(t *testing.T) {
 			expected: "?" + strings.Join([]string{
 				"field_b=true",
 				"field_i=100",
+				"field_uip=200",
 				"interface=gumi",
 				"json_str=hoge",
+				"json_str_p=1",
 				"map_str_str[k1]=2&map_str_str[k2]=4&map_str_str[k3]=6",
 				"slice4_str[0]=1&slice4_str[1]=3&slice4_str[2]=5",
 				"struct2[field]=fuga",
@@ -228,8 +244,10 @@ func TestEncode(t *testing.T) {
 			expected: "?" + strings.Join([]string{
 				"field-b=true",
 				"field-i=100",
+				"field-uip=200",
 				"interface=gumi",
 				"json-str=hoge",
+				"json-str-p=1",
 				"map-str-str[k1]=2&map-str-str[k2]=4&map-str-str[k3]=6",
 				"slice4-str[0]=1&slice4-str[1]=3&slice4-str[2]=5",
 				"struct2[field]=fuga",

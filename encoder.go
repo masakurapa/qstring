@@ -133,7 +133,9 @@ func (e *encoder) encode(key string, rv reflect.Value) (err error) {
 	case reflect.String:
 		e.v.Add(key, rv.String())
 	case reflect.Interface:
-		return e.encode(key, reflect.ValueOf(rv.Interface()))
+		err = e.encode(key, reflect.ValueOf(rv.Interface()))
+	case reflect.Ptr:
+		err = e.encodePtr(key, rv)
 	default:
 		err = fmt.Errorf("type %s is not available (key: %s)", rv.Kind().String(), key)
 	}
@@ -172,7 +174,6 @@ func (e *encoder) encodeArray(key string, rv reflect.Value) error {
 }
 
 func (e *encoder) encodeSlice(key string, rv reflect.Value) error {
-	fmt.Println(rv.IsNil())
 	if rv.IsNil() {
 		if outputNilValue {
 			e.v.Add(key, defaultNilValue)
@@ -180,6 +181,16 @@ func (e *encoder) encodeSlice(key string, rv reflect.Value) error {
 		return nil
 	}
 	return e.encodeArray(key, rv)
+}
+
+func (e *encoder) encodePtr(key string, rv reflect.Value) error {
+	if rv.IsNil() {
+		if outputNilValue {
+			e.v.Add(key, defaultNilValue)
+		}
+		return nil
+	}
+	return e.encode(key, reflect.Indirect(rv))
 }
 
 func (e *encoder) encodeStruct(key string, rv reflect.Value) error {
