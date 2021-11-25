@@ -18,10 +18,12 @@ const (
 )
 
 var (
-	matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
-	matchAllCap   = regexp.MustCompile("([a-z0-9])([A-Z])")
-	matchSnake    = regexp.MustCompile("_+([A-Za-z])")
-	keyType       = KeyTypeCamel
+	matchFirstCap   = regexp.MustCompile("(.)([A-Z][a-z]+)")
+	matchAllCap     = regexp.MustCompile("([a-z0-9])([A-Z])")
+	matchSnake      = regexp.MustCompile("_+([A-Za-z])")
+	keyType         = KeyTypeCamel
+	outputNilValue  = false
+	defaultNilValue = ""
 )
 
 // KeyType is the type of the key format
@@ -46,6 +48,10 @@ type MapQ map[string]interface{}
 // when a struct is used as an argument, the key format defaults to camel-case.
 // if you want to change the format, use qstringer.SetKeyType().
 func Encode(v interface{}) (string, error) {
+	if v == nil {
+		return "", fmt.Errorf("nil is not available")
+	}
+
 	e := encoder{v: url.Values{}}
 	rv := reflect.ValueOf(v)
 
@@ -86,12 +92,28 @@ func SetKeyType(t KeyType) {
 	keyType = t
 }
 
+// OutputNilValue output nil value if set to true.
+//
+// default is false
+func OutputNilValue(b bool) {
+	outputNilValue = b
+}
+
 type encoder struct {
 	v url.Values
 }
 
 func (e *encoder) encode(key string, rv reflect.Value) (err error) {
-	switch rv.Kind() {
+	if !rv.IsValid() {
+		if outputNilValue {
+			e.v.Add(key, "")
+		}
+		return
+	}
+
+	rt := rv.Type()
+
+	switch rt.Kind() {
 	case reflect.Bool:
 		e.v.Add(key, fmt.Sprintf("%v", rv.Bool()))
 	case reflect.Int, reflect.Int64, reflect.Int32, reflect.Int16, reflect.Int8:
@@ -104,17 +126,16 @@ func (e *encoder) encode(key string, rv reflect.Value) (err error) {
 		e.v.Add(key, fmt.Sprintf("%v", rv.Float()))
 	case reflect.Map:
 		err = e.encodeMap(key, rv)
-	case reflect.Array, reflect.Slice:
+	case reflect.Array:
 		err = e.encodeArray(key, rv)
+	case reflect.Slice:
+		err = e.encodeSlice(key, rv)
 	case reflect.Struct:
 		err = e.encodeStruct(key, rv)
 	case reflect.String:
 		e.v.Add(key, rv.String())
 	case reflect.Interface:
 		return e.encode(key, reflect.ValueOf(rv.Interface()))
-	case reflect.Invalid:
-		// ignore reflect.Invalid
-		// TODO: invalid時にエラーにするか無視するかフラグ作る
 	default:
 		err = fmt.Errorf("type %s is not available (key: %s)", rv.Kind().String(), key)
 	}
@@ -123,6 +144,13 @@ func (e *encoder) encode(key string, rv reflect.Value) (err error) {
 }
 
 func (e *encoder) encodeMap(key string, rv reflect.Value) error {
+	if rv.IsNil() {
+		if outputNilValue {
+			e.v.Add(key, "")
+		}
+		return nil
+	}
+
 	iter := rv.MapRange()
 	for iter.Next() {
 		// map key must be a string
@@ -143,6 +171,17 @@ func (e *encoder) encodeArray(key string, rv reflect.Value) error {
 		}
 	}
 	return nil
+}
+
+func (e *encoder) encodeSlice(key string, rv reflect.Value) error {
+	fmt.Println(rv.IsNil())
+	if rv.IsNil() {
+		if outputNilValue {
+			e.v.Add(key, "")
+		}
+		return nil
+	}
+	return e.encodeArray(key, rv)
 }
 
 func (e *encoder) encodeStruct(key string, rv reflect.Value) error {

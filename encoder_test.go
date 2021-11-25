@@ -10,9 +10,10 @@ import (
 )
 
 type s struct {
-	FieldB      bool
-	FieldI      int
-	JSONStr     string
+	FieldB  bool
+	FieldI  int
+	JSONStr string
+	// JSONStrP    *string
 	Struct2     s2
 	Slice4Str   []string
 	Map_Str_Str map[string]string
@@ -26,9 +27,10 @@ type s2 struct {
 func TestEncode(t *testing.T) {
 	v := "1"
 	sv := s{
-		FieldB:      true,
-		FieldI:      100,
-		JSONStr:     "hoge",
+		FieldB:  true,
+		FieldI:  100,
+		JSONStr: "hoge",
+		// JSONStrP:    &v,
 		Struct2:     s2{Field: "fuga"},
 		Slice4Str:   []string{"1", "3", "5"},
 		Map_Str_Str: map[string]string{"k1": "2", "k2": "4", "k3": "6"},
@@ -36,14 +38,16 @@ func TestEncode(t *testing.T) {
 	}
 
 	testCases := []struct {
-		name     string
-		q        interface{}
-		keyType  qstringer.KeyType
-		err      error
-		expected string
+		name           string
+		q              interface{}
+		keyType        qstringer.KeyType
+		outputNilValue bool
+		err            error
+		expected       string
 	}{
+		{name: "nil", q: nil, err: fmt.Errorf("nil is not available")},
+
 		// unavailable types
-		{name: "nil", q: nil, err: fmt.Errorf("type invalid is not available")},
 		{name: "bool type", q: true, err: fmt.Errorf("type bool is not available")},
 		{name: "int type", q: int(123), err: fmt.Errorf("type int is not available")},
 		{name: "int64 type", q: int64(123), err: fmt.Errorf("type int64 is not available")},
@@ -163,6 +167,33 @@ func TestEncode(t *testing.T) {
 			expected: "",
 		},
 		{
+			name:           "struct value is empty and not outputNilValue",
+			q:              s{},
+			keyType:        qstringer.KeyTypeCamel,
+			outputNilValue: false,
+			expected: "?" + strings.Join([]string{
+				"fieldB=false",
+				"fieldI=0",
+				"jsonStr=",
+				"struct2[field]=",
+			}, "&"),
+		},
+		{
+			name:           "struct value is empty and outputNilValue",
+			q:              s{},
+			keyType:        qstringer.KeyTypeCamel,
+			outputNilValue: true,
+			expected: "?" + strings.Join([]string{
+				"fieldB=false",
+				"fieldI=0",
+				"interface=",
+				"jsonStr=",
+				"mapStrStr=",
+				"slice4Str=",
+				"struct2[field]=",
+			}, "&"),
+		},
+		{
 			name:    "output structure fields in camel-case",
 			q:       sv,
 			keyType: qstringer.KeyTypeCamel,
@@ -209,6 +240,8 @@ func TestEncode(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			qstringer.SetKeyType(tc.keyType)
+			qstringer.OutputNilValue(tc.outputNilValue)
+
 			actual, err := qstringer.Encode(tc.q)
 			if err != nil {
 				if tc.err == nil {
