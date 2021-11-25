@@ -106,14 +106,12 @@ type encoder struct {
 func (e *encoder) encode(key string, rv reflect.Value) (err error) {
 	if !rv.IsValid() {
 		if outputNilValue {
-			e.v.Add(key, "")
+			e.v.Add(key, defaultNilValue)
 		}
 		return
 	}
 
-	rt := rv.Type()
-
-	switch rt.Kind() {
+	switch rv.Kind() {
 	case reflect.Bool:
 		e.v.Add(key, fmt.Sprintf("%v", rv.Bool()))
 	case reflect.Int, reflect.Int64, reflect.Int32, reflect.Int16, reflect.Int8:
@@ -146,7 +144,7 @@ func (e *encoder) encode(key string, rv reflect.Value) (err error) {
 func (e *encoder) encodeMap(key string, rv reflect.Value) error {
 	if rv.IsNil() {
 		if outputNilValue {
-			e.v.Add(key, "")
+			e.v.Add(key, defaultNilValue)
 		}
 		return nil
 	}
@@ -177,7 +175,7 @@ func (e *encoder) encodeSlice(key string, rv reflect.Value) error {
 	fmt.Println(rv.IsNil())
 	if rv.IsNil() {
 		if outputNilValue {
-			e.v.Add(key, "")
+			e.v.Add(key, defaultNilValue)
 		}
 		return nil
 	}
