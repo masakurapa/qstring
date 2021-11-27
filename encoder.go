@@ -48,12 +48,12 @@ type MapQ map[string]interface{}
 // when a struct is used as an argument, the key format defaults to camel-case.
 // if you want to change the format, use qstringer.SetKeyType().
 func Encode(v interface{}) (string, error) {
-	if v == nil {
+	rv := reflect.Indirect(reflect.ValueOf(v))
+	if !rv.IsValid() {
 		return "", fmt.Errorf("nil is not available")
 	}
 
 	e := encoder{v: url.Values{}}
-	rv := reflect.ValueOf(v)
 
 	switch rv.Kind() {
 	case reflect.Map:
@@ -135,7 +135,7 @@ func (e *encoder) encode(key string, rv reflect.Value) (err error) {
 	case reflect.Interface:
 		err = e.encode(key, reflect.ValueOf(rv.Interface()))
 	case reflect.Ptr:
-		err = e.encodePtr(key, rv)
+		err = e.encode(key, reflect.Indirect(rv))
 	default:
 		err = fmt.Errorf("type %s is not available (key: %s)", rv.Kind().String(), key)
 	}
@@ -181,16 +181,6 @@ func (e *encoder) encodeSlice(key string, rv reflect.Value) error {
 		return nil
 	}
 	return e.encodeArray(key, rv)
-}
-
-func (e *encoder) encodePtr(key string, rv reflect.Value) error {
-	if rv.IsNil() {
-		if outputNilValue {
-			e.v.Add(key, defaultNilValue)
-		}
-		return nil
-	}
-	return e.encode(key, reflect.Indirect(rv))
 }
 
 func (e *encoder) encodeStruct(key string, rv reflect.Value) error {

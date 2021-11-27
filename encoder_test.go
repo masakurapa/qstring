@@ -73,13 +73,15 @@ func TestEncode(t *testing.T) {
 		{name: "complex128 type", q: complex128(1), err: fmt.Errorf("type complex128 is not available")},
 		{name: "chan type", q: make(chan int), err: fmt.Errorf("type chan is not available")},
 		{name: "func type", q: func() {}, err: fmt.Errorf("type func is not available")},
-		{name: "ptr type", q: func() *string { return nil }(), err: fmt.Errorf("type ptr is not available")},
+		{name: "ptr type", q: func() *string { return &v }(), err: fmt.Errorf("type string is not available")},
+		{name: "nil ptr type", q: func() *string { return nil }(), err: fmt.Errorf("nil is not available")},
 		{name: "unsafe pointer type", q: unsafe.Pointer(&v), err: fmt.Errorf("type unsafe.Pointer is not available")},
 
 		//
 		// map type
 		//
 		{name: "empty map", q: qstringer.Q{}, expected: ""},
+		{name: "empty map pointer", q: &qstringer.Q{}, expected: ""},
 		// map value type is bool
 		{name: "map value type is bool (true)", q: qstringer.Q{"key": true}, expected: "?key=true"},
 		{name: "map value type is bool (false)", q: qstringer.Q{"key": false}, expected: "?key=false"},
@@ -280,5 +282,25 @@ func TestEncode(t *testing.T) {
 				t.Errorf("Encode() returns %q, want %q", a, tc.expected)
 			}
 		})
+	}
+}
+
+func BenchmarkEncode(b *testing.B) {
+	sv := s{
+		FieldB:      true,
+		FieldI:      100,
+		JSONStr:     "hoge",
+		Struct2:     s2{Field: "fuga"},
+		Slice4Str:   []string{"1", "3", "5"},
+		Map_Str_Str: map[string]string{"k1": "2", "k2": "4", "k3": "6"},
+		Interface:   "gumi",
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := qstringer.Encode(sv)
+		if err != nil {
+			b.Fatal(err)
+		}
 	}
 }
