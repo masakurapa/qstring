@@ -65,7 +65,6 @@ func TestEncode(t *testing.T) {
 		{name: "uint8 type", q: uint8(123), err: fmt.Errorf("type uint8 is not available")},
 		{name: "float64 type", q: float64(123.456), err: fmt.Errorf("type float64 is not available")},
 		{name: "float32 type", q: float32(123.456), err: fmt.Errorf("type float32 is not available")},
-		{name: "string type", q: "hoge", err: fmt.Errorf("type string is not available")},
 		{name: "array type", q: [3]string{"1", "2", "3"}, err: fmt.Errorf("type array is not available")},
 		{name: "slice type", q: []string{"1", "2", "3"}, err: fmt.Errorf("type slice is not available")},
 		{name: "uintptr type", q: uintptr(1), err: fmt.Errorf("type uintptr is not available")},
@@ -73,9 +72,16 @@ func TestEncode(t *testing.T) {
 		{name: "complex128 type", q: complex128(1), err: fmt.Errorf("type complex128 is not available")},
 		{name: "chan type", q: make(chan int), err: fmt.Errorf("type chan is not available")},
 		{name: "func type", q: func() {}, err: fmt.Errorf("type func is not available")},
-		{name: "ptr type", q: func() *string { return &v }(), err: fmt.Errorf("type string is not available")},
+		{name: "ptr type", q: func() *uint { return &uv }(), err: fmt.Errorf("type uint is not available")},
 		{name: "nil ptr type", q: func() *string { return nil }(), err: fmt.Errorf("nil is not available")},
 		{name: "unsafe pointer type", q: unsafe.Pointer(&v), err: fmt.Errorf("type unsafe.Pointer is not available")},
+
+		//
+		// string type
+		//
+		{name: "string type", q: "hoge", expected: "?hoge"},
+		{name: "string type", q: "hoge[key]=fuga", expected: "?hoge[key]=fuga"},
+		{name: "string type", q: "?hoge[key]=fuga", expected: "?hoge[key]=fuga"},
 
 		//
 		// map type

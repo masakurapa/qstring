@@ -15,15 +15,17 @@ const (
 	KeyTypeSnake
 	// KeyTypeKebab uses struct fields in kebab-case
 	KeyTypeKebab
+
+	defaultNilValue = ""
+	que             = "?"
 )
 
 var (
-	matchFirstCap   = regexp.MustCompile("(.)([A-Z][a-z]+)")
-	matchAllCap     = regexp.MustCompile("([a-z0-9])([A-Z])")
-	matchSnake      = regexp.MustCompile("_+([A-Za-z])")
-	keyType         = KeyTypeCamel
-	outputNilValue  = false
-	defaultNilValue = ""
+	matchFirstCap  = regexp.MustCompile("(.)([A-Z][a-z]+)")
+	matchAllCap    = regexp.MustCompile("([a-z0-9])([A-Z])")
+	matchSnake     = regexp.MustCompile("_+([A-Za-z])")
+	keyType        = KeyTypeCamel
+	outputNilValue = false
 )
 
 // KeyType is the type of the key format
@@ -77,6 +79,9 @@ func Encode(v interface{}) (string, error) {
 				return "", err
 			}
 		}
+	case reflect.String:
+		s := strings.TrimPrefix(rv.String(), que)
+		return que + strings.ReplaceAll(url.QueryEscape(s), "%3D", "="), nil
 	default:
 		return "", fmt.Errorf("type %s is not available", rv.Kind().String())
 	}
@@ -84,7 +89,7 @@ func Encode(v interface{}) (string, error) {
 	if len(e.v) == 0 {
 		return "", nil
 	}
-	return "?" + e.v.Encode(), nil
+	return que + e.v.Encode(), nil
 }
 
 // SetKeyType sets the key format of the struct field.
