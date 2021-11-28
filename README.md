@@ -2,36 +2,62 @@
 
 qstringer is a Golang module for generating query strings.
 
-## Quick Start
+## Usage
+
+### Encode the map
 
 ```
 import "github.com/masakurapa/qstringer"
 
 func main() {
-	q, err := qstringer.Encode(qstringer.Q{"key": "value"})
+	q, err := qstringer.Encode(qstringer.Q{"key":
+		qstringer.Q{"a": "value"},
+	})
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(q) // returns "?key=value
+	fmt.Println(q) // returns "?key%5Ba%5D=value"
 }
 ```
 
-or any struct can be used.
+### Encode the struct
+
+The fields of the struct need to be public.
 
 ```
 import "github.com/masakurapa/qstringer"
 
 func main() {
 	s := struct {
-		Key string
+		Key interface{}
 	}{
-		Key: "string,
+		Key: struct {
+			A string
+		}{
+			A: "value",
+		},
 	}
 
 	q, err := qstringer.Encode(s)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(q) // returns "?key=value
+	fmt.Println(q) // returns "?key%5Ba%5D=value"
+}
+```
+
+### Encode the string
+
+```
+import "github.com/masakurapa/qstringer"
+
+func main() {
+	s := "?key[a]=value"
+
+	q, err := qstringer.Encode(s)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(q) // returns "?key%5Ba%5D=value"
 }
 ```
