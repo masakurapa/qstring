@@ -2,7 +2,7 @@
 
 qstringer is a Golang module for generating query strings.
 
-[godoc](https://pkg.go.dev/github.com/masakurapa/qstringe) please check here.
+[godoc](https://pkg.go.dev/github.com/masakurapa/qstringer) please check here.
 
 ## Usage
 
