@@ -27,6 +27,7 @@ func main() {
 ### Encode the struct
 
 The fields of the struct need to be public.
+And specify `qstringer` for tags.
 
 ```
 import (
@@ -36,17 +37,18 @@ import (
 )
 
 func main() {
-	s := struct {
-		Key interface{}
-	}{
-		Key: struct {
-			A string
-		}{
-			A: "value",
-		},
+	type ss struct {
+		A string `qstringer:"a"`
+	}
+	type s struct {
+		Key ss `qstriger:"key"`
 	}
 
-	q, err := qstringer.Encode(s)
+	q, err := qstringer.Encode(s{
+		Key: ss{
+			A: "value",
+		},
+	})
 	if err != nil {
 		panic(err)
 	}

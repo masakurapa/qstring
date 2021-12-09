@@ -4,33 +4,21 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
-	"regexp"
 	"strings"
 )
 
 const (
-	// KeyTypeCamel uses struct fields in camel-case
-	KeyTypeCamel KeyType = iota
-	// KeyTypeSnake uses struct fields in snake-case
-	KeyTypeSnake
-	// KeyTypeKebab uses struct fields in kebab-case
-	KeyTypeKebab
-
 	defaultNilValue = ""
 	que             = "?"
+	tagName         = "qstringer"
 )
 
 var (
-	matchFirstCap  = regexp.MustCompile("(.)([A-Z][a-z]+)")
-	matchAllCap    = regexp.MustCompile("([a-z0-9])([A-Z])")
-	matchSnake     = regexp.MustCompile("_+([A-Za-z])")
-	keyType        = KeyTypeCamel
-	outputNilValue = false
+	// DefaultEncoder is the encoder in default setting
+	DefaultEncoder = &Encoder{
+		withoutNilValue: false,
+	}
 )
-
-// KeyType is the type of the key format
-// when using the public field of the struct as the key
-type KeyType int
 
 // Q is the type of the query string parameters.
 type Q map[string]interface{}
@@ -41,21 +29,51 @@ type ArrayQ []interface{}
 // MapQ is a type of query string in map format.
 type MapQ map[string]interface{}
 
+// Encoder is the encoder to generate the query string
+type Encoder struct {
+	withoutNilValue bool
+}
+
+// Encode returns the URL-encoded query string.
+//
+// Support struct, map type where the key is a string.
+//
+// Add "?" to the beginning and return.
+//
+// By default, a nil value will be output.
+//
+// If you don't want to output nil values,
+// use "qstringer.WithoutNilValue().Encode".
+func Encode(v interface{}) (string, error) {
+	return DefaultEncoder.Encode(v)
+}
+
+// WithoutNilValue does not output a nil value
+func WithoutNilValue() *Encoder {
+	return &Encoder{withoutNilValue: true}
+}
+
+// WithoutNilValue does not output a nil value
+func (e *Encoder) WithoutNilValue() *Encoder {
+	e.withoutNilValue = true
+	return e
+}
+
 // Encode returns the URL-encoded query string.
 //
 // support struct, map type where the key is a string.
 //
 // add "?" to the beginning and return.
-//
-// when a struct is used as an argument, the key format defaults to camel-case.
-// if you want to change the format, use qstringer.SetKeyType().
-func Encode(v interface{}) (string, error) {
+func (e *Encoder) Encode(v interface{}) (string, error) {
 	rv := reflect.Indirect(reflect.ValueOf(v))
 	if !rv.IsValid() {
 		return "", fmt.Errorf("nil is not available")
 	}
 
-	e := encoder{v: url.Values{}}
+	en := encoder{
+		withoutNilValue: e.withoutNilValue,
+		v:               url.Values{},
+	}
 
 	switch rv.Kind() {
 	case reflect.Map:
@@ -65,7 +83,7 @@ func Encode(v interface{}) (string, error) {
 			if iter.Key().Kind() != reflect.String {
 				return "", fmt.Errorf("the key of the map type must be a string")
 			}
-			if err := e.encode(iter.Key().String(), iter.Value()); err != nil {
+			if err := en.encode(iter.Key().String(), iter.Value()); err != nil {
 				return "", err
 			}
 		}
@@ -75,7 +93,12 @@ func Encode(v interface{}) (string, error) {
 			if !f.IsExported() {
 				continue
 			}
-			if err := e.encode(e.structKey(f.Name), rv.FieldByName(f.Name)); err != nil {
+			tag := f.Tag.Get(tagName)
+			if tag == "" {
+				continue
+			}
+
+			if err := en.encode(tag, rv.FieldByName(f.Name)); err != nil {
 				return "", err
 			}
 		}
@@ -86,31 +109,20 @@ func Encode(v interface{}) (string, error) {
 		return "", fmt.Errorf("type %s is not available", rv.Kind().String())
 	}
 
-	if len(e.v) == 0 {
+	if len(en.v) == 0 {
 		return "", nil
 	}
-	return que + e.v.Encode(), nil
-}
-
-// SetKeyType sets the key format of the struct field.
-func SetKeyType(t KeyType) {
-	keyType = t
-}
-
-// OutputNilValue output nil value if set to true.
-//
-// default is false
-func OutputNilValue(b bool) {
-	outputNilValue = b
+	return que + en.v.Encode(), nil
 }
 
 type encoder struct {
-	v url.Values
+	withoutNilValue bool
+	v               url.Values
 }
 
 func (e *encoder) encode(key string, rv reflect.Value) (err error) {
 	if !rv.IsValid() {
-		if outputNilValue {
+		if !e.withoutNilValue {
 			e.v.Add(key, defaultNilValue)
 		}
 		return
@@ -150,7 +162,7 @@ func (e *encoder) encode(key string, rv reflect.Value) (err error) {
 
 func (e *encoder) encodeMap(key string, rv reflect.Value) error {
 	if rv.IsNil() {
-		if outputNilValue {
+		if !e.withoutNilValue {
 			e.v.Add(key, defaultNilValue)
 		}
 		return nil
@@ -180,7 +192,7 @@ func (e *encoder) encodeArray(key string, rv reflect.Value) error {
 
 func (e *encoder) encodeSlice(key string, rv reflect.Value) error {
 	if rv.IsNil() {
-		if outputNilValue {
+		if !e.withoutNilValue {
 			e.v.Add(key, defaultNilValue)
 		}
 		return nil
@@ -194,44 +206,15 @@ func (e *encoder) encodeStruct(key string, rv reflect.Value) error {
 		if !f.IsExported() {
 			continue
 		}
-		if err := e.encode(fmt.Sprintf("%s[%s]", key, e.structKey(f.Name)), rv.FieldByName(f.Name)); err != nil {
+
+		tag := f.Tag.Get(tagName)
+		if tag == "" {
+			continue
+		}
+
+		if err := e.encode(fmt.Sprintf("%s[%s]", key, tag), rv.FieldByName(f.Name)); err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func (e *encoder) structKey(str string) string {
-	switch keyType {
-	case KeyTypeSnake:
-		return e.toSnakeCase(str)
-	case KeyTypeKebab:
-		return e.toKebabCase(str)
-	default:
-		return e.toCamelCase(str)
-	}
-}
-
-func (e *encoder) toCamelCase(str string) string {
-	s := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
-	s = matchAllCap.ReplaceAllString(s, "${1}_${2}")
-	s = strings.ToLower(s)
-	return matchSnake.ReplaceAllStringFunc(s, func(s string) string {
-		return strings.ToUpper(strings.Replace(s, "_", "", -1))
-	})
-}
-
-func (e *encoder) toSnakeCase(str string) string {
-	s := strings.ReplaceAll(str, "_", "-")
-	s = matchFirstCap.ReplaceAllString(s, "${1}_${2}")
-	s = matchAllCap.ReplaceAllString(s, "${1}_${2}")
-	s = strings.ReplaceAll(s, "-", "")
-	return strings.ToLower(s)
-}
-
-func (e *encoder) toKebabCase(str string) string {
-	s := matchFirstCap.ReplaceAllString(str, "${1}-${2}")
-	s = matchAllCap.ReplaceAllString(s, "${1}-${2}")
-	s = strings.ReplaceAll(s, "_", "")
-	return strings.ToLower(s)
 }
