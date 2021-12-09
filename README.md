@@ -7,7 +7,11 @@ qstringer is a Golang module for generating query strings.
 ### Encode the map
 
 ```
-import "github.com/masakurapa/qstringer"
+import (
+	"fmt"
+
+	"github.com/masakurapa/qstringer"
+)
 
 func main() {
 	q, err := qstringer.Encode(qstringer.Q{"key":
@@ -25,7 +29,11 @@ func main() {
 The fields of the struct need to be public.
 
 ```
-import "github.com/masakurapa/qstringer"
+import (
+	"fmt"
+
+	"github.com/masakurapa/qstringer"
+)
 
 func main() {
 	s := struct {
@@ -49,7 +57,11 @@ func main() {
 ### Encode the string
 
 ```
-import "github.com/masakurapa/qstringer"
+import (
+	"fmt"
+
+	"github.com/masakurapa/qstringer"
+)
 
 func main() {
 	s := "?key[a]=value"
