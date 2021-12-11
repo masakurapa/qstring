@@ -10,14 +10,6 @@ import (
 const (
 	defaultNilValue = ""
 	que             = "?"
-	tagName         = "qstringer"
-)
-
-var (
-	// DefaultEncoder is the encoder in default setting
-	DefaultEncoder = &Encoder{
-		withoutNilValue: false,
-	}
 )
 
 // Q is the type of the query string parameters.
@@ -25,14 +17,6 @@ type Q map[string]interface{}
 
 // ArrayQ is a type of query string in array format.
 type ArrayQ []interface{}
-
-// MapQ is a type of query string in map format.
-type MapQ map[string]interface{}
-
-// Encoder is the encoder to generate the query string
-type Encoder struct {
-	withoutNilValue bool
-}
 
 // Encode returns the URL-encoded query string.
 //
@@ -43,41 +27,24 @@ type Encoder struct {
 // By default, a nil value will be output.
 //
 // If you don't want to output nil values,
-// use "qstringer.WithoutNilValue().Encode".
+// Please specify option "omitempty" in the tag.
 func Encode(v interface{}) (string, error) {
-	return DefaultEncoder.Encode(v)
-}
-
-// WithoutNilValue does not output a nil value
-func WithoutNilValue() *Encoder {
-	return &Encoder{withoutNilValue: true}
-}
-
-// WithoutNilValue does not output a nil value
-func (e *Encoder) WithoutNilValue() *Encoder {
-	e.withoutNilValue = true
-	return e
-}
-
-// Encode returns the URL-encoded query string.
-//
-// support struct, map type where the key is a string.
-//
-// add "?" to the beginning and return.
-func (e *Encoder) Encode(v interface{}) (string, error) {
 	rv := reflect.Indirect(reflect.ValueOf(v))
 	if !rv.IsValid() {
 		return "", fmt.Errorf("nil is not available")
 	}
 
 	en := encoder{
-		withoutNilValue: e.withoutNilValue,
-		v:               url.Values{},
+		v: url.Values{},
 	}
 
 	switch rv.Kind() {
-	case reflect.Map, reflect.Struct:
-		if err := en.encode("", rv); err != nil {
+	case reflect.Map:
+		if err := en.encodeMap("", rv); err != nil {
+			return "", err
+		}
+	case reflect.Struct:
+		if err := en.encodeStruct("", rv); err != nil {
 			return "", err
 		}
 	case reflect.String:
@@ -94,18 +61,10 @@ func (e *Encoder) Encode(v interface{}) (string, error) {
 }
 
 type encoder struct {
-	withoutNilValue bool
-	v               url.Values
+	v url.Values
 }
 
-func (e *encoder) encode(key string, rv reflect.Value) (err error) {
-	if !rv.IsValid() {
-		if !e.withoutNilValue {
-			e.v.Add(key, defaultNilValue)
-		}
-		return
-	}
-
+func (e *encoder) encode(key string, rv reflect.Value) error {
 	switch rv.Kind() {
 	case reflect.Bool:
 		e.v.Add(key, fmt.Sprintf("%v", rv.Bool()))
@@ -118,31 +77,37 @@ func (e *encoder) encode(key string, rv reflect.Value) (err error) {
 	case reflect.Float64:
 		e.v.Add(key, fmt.Sprintf("%v", rv.Float()))
 	case reflect.Map:
-		err = e.encodeMap(key, rv)
+		return e.encodeMap(key, rv)
 	case reflect.Array:
-		err = e.encodeArray(key, rv)
+		return e.encodeArray(key, rv)
 	case reflect.Slice:
-		err = e.encodeSlice(key, rv)
+		return e.encodeSlice(key, rv)
 	case reflect.Struct:
-		err = e.encodeStruct(key, rv)
+		return e.encodeStruct(key, rv)
 	case reflect.String:
 		e.v.Add(key, rv.String())
 	case reflect.Interface:
-		err = e.encode(key, reflect.ValueOf(rv.Interface()))
+		if rv.IsNil() {
+			e.v.Add(key, defaultNilValue)
+			return nil
+		}
+		return e.encode(key, reflect.ValueOf(rv.Interface()))
 	case reflect.Ptr:
-		err = e.encode(key, reflect.Indirect(rv))
+		if rv.IsNil() {
+			e.v.Add(key, defaultNilValue)
+			return nil
+		}
+		return e.encode(key, reflect.Indirect(rv))
 	default:
-		err = fmt.Errorf("type %s is not available (key: %s)", rv.Kind().String(), key)
+		return fmt.Errorf("type %s is not available (key: %s)", rv.Kind().String(), key)
 	}
 
-	return
+	return nil
 }
 
 func (e *encoder) encodeMap(key string, rv reflect.Value) error {
 	if rv.IsNil() {
-		if !e.withoutNilValue {
-			e.v.Add(key, defaultNilValue)
-		}
+		e.v.Add(key, defaultNilValue)
 		return nil
 	}
 
@@ -175,9 +140,7 @@ func (e *encoder) encodeArray(key string, rv reflect.Value) error {
 
 func (e *encoder) encodeSlice(key string, rv reflect.Value) error {
 	if rv.IsNil() {
-		if !e.withoutNilValue {
-			e.v.Add(key, defaultNilValue)
-		}
+		e.v.Add(key, defaultNilValue)
 		return nil
 	}
 	return e.encodeArray(key, rv)
@@ -190,12 +153,17 @@ func (e *encoder) encodeStruct(key string, rv reflect.Value) error {
 			continue
 		}
 
-		tag := f.Tag.Get(tagName)
+		tag, opt := parseTag(f.Tag)
 		if tag == "" {
 			continue
 		}
 
-		if err := e.encode(e.makeMapKey(key, tag), rv.FieldByName(f.Name)); err != nil {
+		frv := rv.FieldByName(f.Name)
+		if opt.omitempty && e.isEmptyValue(frv) {
+			continue
+		}
+
+		if err := e.encode(e.makeMapKey(key, tag), frv); err != nil {
 			return err
 		}
 	}
@@ -207,4 +175,22 @@ func (e *encoder) makeMapKey(key, ch string) string {
 		return ch
 	}
 	return fmt.Sprintf("%s[%s]", key, ch)
+}
+
+func (e *encoder) isEmptyValue(rv reflect.Value) bool {
+	switch rv.Kind() {
+	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
+		return rv.Len() == 0
+	case reflect.Bool:
+		return !rv.Bool()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return rv.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return rv.Uint() == 0
+	case reflect.Float32, reflect.Float64:
+		return rv.Float() == 0
+	case reflect.Interface, reflect.Ptr:
+		return rv.IsNil()
+	}
+	return false
 }
