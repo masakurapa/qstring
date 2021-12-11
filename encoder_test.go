@@ -189,14 +189,14 @@ func TestEncode(t *testing.T) {
 		},
 		{
 			name: "struct value",
-			q:    qstringer.Q{"key": sv},
+			q:    sv,
 			expected: "?" + strings.Join([]string{
 				"field-uip=200",
 				"fieldI=100",
 				"field_b=true",
 				"interface=gumi",
 				"json_str=hoge",
-				"json_str-p]=1",
+				"json_str-p=1",
 				"map_strStr[k1]=2&map_strStr[k2]=4&map_strStr[k3]=6",
 				"slice-for-str[0]=1&slice-for-str[1]=3&slice-for-str[2]=5",
 				"struct2[field]=fuga",
