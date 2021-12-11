@@ -48,8 +48,12 @@ func Encode(v interface{}) (string, error) {
 			return "", err
 		}
 	case reflect.String:
+		q := ""
+		if strings.HasPrefix(rv.String(), que) {
+			q = que
+		}
 		s := strings.TrimPrefix(rv.String(), que)
-		return que + strings.ReplaceAll(url.QueryEscape(s), "%3D", "="), nil
+		return q + strings.ReplaceAll(url.QueryEscape(s), "%3D", "="), nil
 	default:
 		return "", fmt.Errorf("type %s is not available", rv.Kind().String())
 	}
@@ -57,7 +61,7 @@ func Encode(v interface{}) (string, error) {
 	if len(en.v) == 0 {
 		return "", nil
 	}
-	return que + en.v.Encode(), nil
+	return en.v.Encode(), nil
 }
 
 type encoder struct {

@@ -83,9 +83,8 @@ func TestEncode(t *testing.T) {
 		//
 		// string type
 		//
-		{name: "string type", q: "hoge", expected: "?hoge"},
-		{name: "string type", q: "hoge[key]=fuga", expected: "?hoge[key]=fuga"},
-		{name: "string type", q: "?hoge[key]=fuga", expected: "?hoge[key]=fuga"},
+		{name: "string type with quote", q: "?hoge[key]=fuga", expected: "?hoge[key]=fuga"},
+		{name: "string type without quote", q: "hoge[key]=fuga", expected: "hoge[key]=fuga"},
 
 		//
 		// map type
@@ -93,39 +92,39 @@ func TestEncode(t *testing.T) {
 		{name: "empty map", q: qstringer.Q{}, expected: ""},
 		{name: "empty map pointer", q: &qstringer.Q{}, expected: ""},
 		// map value type is bool
-		{name: "map value type is bool (true)", q: qstringer.Q{"key": true}, expected: "?key=true"},
-		{name: "map value type is bool (false)", q: qstringer.Q{"key": false}, expected: "?key=false"},
+		{name: "map value type is bool (true)", q: qstringer.Q{"key": true}, expected: "key=true"},
+		{name: "map value type is bool (false)", q: qstringer.Q{"key": false}, expected: "key=false"},
 		// map value type is int
-		{name: "map value type is int", q: qstringer.Q{"key": int(123)}, expected: "?key=123"},
-		{name: "map value type is int64", q: qstringer.Q{"key": int64(123)}, expected: "?key=123"},
-		{name: "map value type is int32", q: qstringer.Q{"key": int32(123)}, expected: "?key=123"},
-		{name: "map value type is int16", q: qstringer.Q{"key": int16(123)}, expected: "?key=123"},
-		{name: "map value type is int8", q: qstringer.Q{"key": int8(123)}, expected: "?key=123"},
+		{name: "map value type is int", q: qstringer.Q{"key": int(123)}, expected: "key=123"},
+		{name: "map value type is int64", q: qstringer.Q{"key": int64(123)}, expected: "key=123"},
+		{name: "map value type is int32", q: qstringer.Q{"key": int32(123)}, expected: "key=123"},
+		{name: "map value type is int16", q: qstringer.Q{"key": int16(123)}, expected: "key=123"},
+		{name: "map value type is int8", q: qstringer.Q{"key": int8(123)}, expected: "key=123"},
 		// map value type is uint
-		{name: "map value type is uint", q: qstringer.Q{"key": uint(123)}, expected: "?key=123"},
-		{name: "map value type is uint64", q: qstringer.Q{"key": uint64(123)}, expected: "?key=123"},
-		{name: "map value type is uint32", q: qstringer.Q{"key": uint32(123)}, expected: "?key=123"},
-		{name: "map value type is uint16", q: qstringer.Q{"key": uint16(123)}, expected: "?key=123"},
-		{name: "map value type is uint8", q: qstringer.Q{"key": uint8(123)}, expected: "?key=123"},
+		{name: "map value type is uint", q: qstringer.Q{"key": uint(123)}, expected: "key=123"},
+		{name: "map value type is uint64", q: qstringer.Q{"key": uint64(123)}, expected: "key=123"},
+		{name: "map value type is uint32", q: qstringer.Q{"key": uint32(123)}, expected: "key=123"},
+		{name: "map value type is uint16", q: qstringer.Q{"key": uint16(123)}, expected: "key=123"},
+		{name: "map value type is uint8", q: qstringer.Q{"key": uint8(123)}, expected: "key=123"},
 		// map value type is float
-		{name: "map value type is float64", q: qstringer.Q{"key": float64(123.456)}, expected: "?key=123.456"},
-		{name: "map value type is float32", q: qstringer.Q{"key": float32(123.456)}, expected: "?key=123.456"},
+		{name: "map value type is float64", q: qstringer.Q{"key": float64(123.456)}, expected: "key=123.456"},
+		{name: "map value type is float32", q: qstringer.Q{"key": float32(123.456)}, expected: "key=123.456"},
 		// map value type is string
-		{name: "map value type is string", q: qstringer.Q{"key": "hoge"}, expected: "?key=hoge"},
+		{name: "map value type is string", q: qstringer.Q{"key": "hoge"}, expected: "key=hoge"},
 		// map value type is ptr
 		{name: "map value type is ptr", q: qstringer.Q{"key": func() *string {
 			s := "pointer"
 			return &s
-		}()}, expected: "?key=pointer"},
+		}()}, expected: "key=pointer"},
 		// map value type is array
-		{name: "map value type is array (string)", q: qstringer.Q{"key": [3]string{"1", "2", "3"}}, expected: "?key[0]=1&key[1]=2&key[2]=3"},
-		{name: "map value type is array (interface)", q: qstringer.Q{"key": [3]interface{}{1, "2", true}}, expected: "?key[0]=1&key[1]=2&key[2]=true"},
+		{name: "map value type is array (string)", q: qstringer.Q{"key": [3]string{"1", "2", "3"}}, expected: "key[0]=1&key[1]=2&key[2]=3"},
+		{name: "map value type is array (interface)", q: qstringer.Q{"key": [3]interface{}{1, "2", true}}, expected: "key[0]=1&key[1]=2&key[2]=true"},
 		// map value type is slice
-		{name: "map value type is slice (string)", q: qstringer.Q{"key": []string{"1", "2", "3"}}, expected: "?key[0]=1&key[1]=2&key[2]=3"},
-		{name: "map value type is slice (interface)", q: qstringer.Q{"key": qstringer.ArrayQ{1, "2", true}}, expected: "?key[0]=1&key[1]=2&key[2]=true"},
+		{name: "map value type is slice (string)", q: qstringer.Q{"key": []string{"1", "2", "3"}}, expected: "key[0]=1&key[1]=2&key[2]=3"},
+		{name: "map value type is slice (interface)", q: qstringer.Q{"key": qstringer.ArrayQ{1, "2", true}}, expected: "key[0]=1&key[1]=2&key[2]=true"},
 		// map value type is map
-		{name: "map value type is map (string)", q: qstringer.Q{"key": map[string]string{"key1": "1", "key2": "2", "key3": "3"}}, expected: "?key[key1]=1&key[key2]=2&key[key3]=3"},
-		{name: "map value type is map (interface)", q: qstringer.Q{"key": qstringer.Q{"key1": 1, "key2": "2", "key3": true}}, expected: "?key[key1]=1&key[key2]=2&key[key3]=true"},
+		{name: "map value type is map (string)", q: qstringer.Q{"key": map[string]string{"key1": "1", "key2": "2", "key3": "3"}}, expected: "key[key1]=1&key[key2]=2&key[key3]=3"},
+		{name: "map value type is map (interface)", q: qstringer.Q{"key": qstringer.Q{"key1": 1, "key2": "2", "key3": true}}, expected: "key[key1]=1&key[key2]=2&key[key3]=true"},
 		// map value type is slice
 		{
 			name: "map value type is slice (interface)",
@@ -133,7 +132,7 @@ func TestEncode(t *testing.T) {
 				map[string]string{"key1": "1", "key2": "2", "key3": "3"},
 				qstringer.Q{"key1": 1, "key2": "2", "key3": true},
 			}},
-			expected: "?key[0][key1]=1&key[0][key2]=2&key[0][key3]=3&key[1][key1]=1&key[1][key2]=2&key[1][key3]=true",
+			expected: "key[0][key1]=1&key[0][key2]=2&key[0][key3]=3&key[1][key1]=1&key[1][key2]=2&key[1][key3]=true",
 		},
 		// map value type is map
 		{
@@ -142,7 +141,7 @@ func TestEncode(t *testing.T) {
 				"key1": []string{"1", "2", "3"},
 				"key2": qstringer.ArrayQ{1, "2", true},
 			}},
-			expected: "?key[key1][0]=1&key[key1][1]=2&key[key1][2]=3&key[key2][0]=1&key[key2][1]=2&key[key2][2]=true",
+			expected: "key[key1][0]=1&key[key1][1]=2&key[key1][2]=3&key[key2][0]=1&key[key2][1]=2&key[key2][2]=true",
 		},
 		// unavailable map value types
 		{name: "map value type is uintptr", q: qstringer.Q{"key": uintptr(1)}, err: fmt.Errorf("type uintptr is not available (key: key)")},
@@ -153,7 +152,7 @@ func TestEncode(t *testing.T) {
 		{
 			name: "map value type is struct",
 			q:    qstringer.Q{"key": sv},
-			expected: "?" + strings.Join([]string{
+			expected: strings.Join([]string{
 				"key[field-uip]=200",
 				"key[fieldI]=100",
 				"key[field_b]=true",
@@ -190,7 +189,7 @@ func TestEncode(t *testing.T) {
 		{
 			name: "struct value",
 			q:    sv,
-			expected: "?" + strings.Join([]string{
+			expected: strings.Join([]string{
 				"field-uip=200",
 				"fieldI=100",
 				"field_b=true",
@@ -205,7 +204,7 @@ func TestEncode(t *testing.T) {
 		{
 			name: "struct value is empty and not specify omitempty",
 			q:    s{},
-			expected: "?" + strings.Join([]string{
+			expected: strings.Join([]string{
 				"field-uip=",
 				"fieldI=0",
 				"field_b=false",
