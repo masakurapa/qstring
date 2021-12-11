@@ -76,31 +76,9 @@ func (e *Encoder) Encode(v interface{}) (string, error) {
 	}
 
 	switch rv.Kind() {
-	case reflect.Map:
-		iter := rv.MapRange()
-		for iter.Next() {
-			// map key must be a string
-			if iter.Key().Kind() != reflect.String {
-				return "", fmt.Errorf("the key of the map type must be a string")
-			}
-			if err := en.encode(iter.Key().String(), iter.Value()); err != nil {
-				return "", err
-			}
-		}
-	case reflect.Struct:
-		for i := 0; i < rv.NumField(); i++ {
-			f := rv.Type().Field(i)
-			if !f.IsExported() {
-				continue
-			}
-			tag := f.Tag.Get(tagName)
-			if tag == "" {
-				continue
-			}
-
-			if err := en.encode(tag, rv.FieldByName(f.Name)); err != nil {
-				return "", err
-			}
+	case reflect.Map, reflect.Struct:
+		if err := en.encode("", rv); err != nil {
+			return "", err
 		}
 	case reflect.String:
 		s := strings.TrimPrefix(rv.String(), que)
@@ -172,9 +150,14 @@ func (e *encoder) encodeMap(key string, rv reflect.Value) error {
 	for iter.Next() {
 		// map key must be a string
 		if iter.Key().Kind() != reflect.String {
-			return fmt.Errorf("the key of the map type must be a string (key: %s)", key)
+			if key == "" {
+				return fmt.Errorf("the key of the map type must be a string")
+			} else {
+				return fmt.Errorf("the key of the map type must be a string (key: %s)", key)
+			}
 		}
-		if err := e.encode(fmt.Sprintf("%s[%s]", key, iter.Key().String()), iter.Value()); err != nil {
+
+		if err := e.encode(e.makeMapKey(key, iter.Key().String()), iter.Value()); err != nil {
 			return err
 		}
 	}
@@ -212,9 +195,16 @@ func (e *encoder) encodeStruct(key string, rv reflect.Value) error {
 			continue
 		}
 
-		if err := e.encode(fmt.Sprintf("%s[%s]", key, tag), rv.FieldByName(f.Name)); err != nil {
+		if err := e.encode(e.makeMapKey(key, tag), rv.FieldByName(f.Name)); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (e *encoder) makeMapKey(key, ch string) string {
+	if key == "" {
+		return ch
+	}
+	return fmt.Sprintf("%s[%s]", key, ch)
 }
