@@ -22,7 +22,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(q) // returns "?key%5Ba%5D=value"
+	fmt.Println(q) // returns "key%5Ba%5D=value"
 }
 ```
 
@@ -54,7 +54,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(q) // returns "?key%5Ba%5D=value"
+	fmt.Println(q) // returns "key%5Ba%5D=value"
 }
 ```
 
