@@ -247,7 +247,7 @@ func TestEncode(t *testing.T) {
 					t.Fatalf("Encode() should not returns error, got %q", err)
 				}
 				if err.Error() != tc.err.Error() {
-					t.Fatalf("Encode() error returns %q, got %q", err, tc.err)
+					t.Fatalf("Encode() error returns %q, want %q", err, tc.err)
 				}
 			}
 
