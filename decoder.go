@@ -24,17 +24,11 @@ func Decode(s string, v interface{}) error {
 	if !riv.IsValid() {
 		return fmt.Errorf("nil is not available")
 	}
-	// d := decoder{rv: riv}
+	d := decoder{rv: riv}
 
 	switch riv.Kind() {
 	case reflect.String:
-		q, err := url.QueryUnescape(s)
-		if err != nil {
-			return err
-		}
-		riv.SetString(q)
-		return nil
-
+		return d.decodeString(s)
 	default:
 		return fmt.Errorf("type %s is not available", riv.Kind().String())
 	}
