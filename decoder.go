@@ -27,6 +27,14 @@ func Decode(s string, v interface{}) error {
 	// d := decoder{rv: riv}
 
 	switch riv.Kind() {
+	case reflect.String:
+		q, err := url.QueryUnescape(s)
+		if err != nil {
+			return err
+		}
+		riv.SetString(q)
+		return nil
+
 	default:
 		return fmt.Errorf("type %s is not available", riv.Kind().String())
 	}

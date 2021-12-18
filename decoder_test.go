@@ -3,6 +3,7 @@ package qstringer_test
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 	"unsafe"
 
@@ -47,6 +48,8 @@ func TestDecode(t *testing.T) {
 		{name: "unsafe pointer type", q: q, v: func() *unsafe.Pointer { var a unsafe.Pointer; return &a }(), err: fmt.Errorf("type unsafe.Pointer is not available")},
 
 		// string type
+		{name: "string type with quote", q: "?hoge[key]=fuga", v: func() *string { var a string; return &a }(), expected: "?hoge[key]=fuga"},
+		{name: "string type without quote", q: "hoge[key]=fuga", v: func() *string { var a string; return &a }(), expected: "hoge[key]=fuga"},
 
 		// array type
 
@@ -59,7 +62,9 @@ func TestDecode(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := qstringer.Decode(tc.q, tc.v)
+			q := strings.ReplaceAll(tc.q, "%5B", "[")
+			q = strings.ReplaceAll(q, "%5D", "]")
+			err := qstringer.Decode(q, tc.v)
 			if err != nil {
 				if tc.err == nil {
 					t.Fatalf("Decode() should not returns error, got %q", err)
@@ -73,7 +78,7 @@ func TestDecode(t *testing.T) {
 				t.Errorf("Decode() should returns error, want %q", tc.err)
 			}
 			if err == nil && tc.err == nil {
-				if !reflect.DeepEqual(tc.v, tc.expected) {
+				if !reflect.DeepEqual(reflect.Indirect(reflect.ValueOf(tc.v)).Interface(), tc.expected) {
 					t.Errorf("Decode() returns \n%v\nwant \n%v", tc.v, tc.expected)
 				}
 			}
