@@ -54,6 +54,8 @@ func TestDecode(t *testing.T) {
 		// array type
 
 		// slice type
+		{name: "array of string type", q: "hoge[]=a&hoge[]=2&hoge[]=3", v: func() *[]string { var a []string; return &a }(), expected: []string{"a", "2", "3"}},
+		{name: "array of int type", q: "hoge[]=1", v: func() *[]int { var a []int; return &a }(), err: fmt.Errorf("allocation type must be []stirng")},
 
 		// map type
 
