@@ -52,6 +52,10 @@ func TestDecode(t *testing.T) {
 		{name: "string type without quote", q: "hoge[key]=fuga", v: func() *string { var a string; return &a }(), expected: "hoge[key]=fuga"},
 
 		// array type
+		{name: "array of string type1", q: "hoge[]=a", v: func() *[3]string { var a [3]string; return &a }(), expected: [3]string{"a", "", ""}},
+		{name: "array of string type2", q: "hoge[]=a&hoge[]=2&hoge[]=3", v: func() *[3]string { var a [3]string; return &a }(), expected: [3]string{"a", "2", "3"}},
+		{name: "array of string type - capacity exceeded", q: "hoge[]=a&hoge[]=2&hoge[]=3&hoge[]=4", v: func() *[3]string { var a [3]string; return &a }(), err: fmt.Errorf("array capacity exceeded")},
+		{name: "array of int type", q: "hoge[]=1", v: func() *[3]int { var a [3]int; return &a }(), err: fmt.Errorf("allocation type must be [n]stirng")},
 
 		// slice type
 		{name: "array of string type", q: "hoge[]=a&hoge[]=2&hoge[]=3", v: func() *[]string { var a []string; return &a }(), expected: []string{"a", "2", "3"}},

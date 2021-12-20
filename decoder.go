@@ -30,6 +30,8 @@ func Decode(s string, v interface{}) error {
 	switch riv.Kind() {
 	case reflect.String:
 		return d.decodeString()
+	case reflect.Array:
+		return d.decodeArray()
 	case reflect.Slice:
 		return d.decodeSlice()
 	}
@@ -70,6 +72,35 @@ func (d *decoder) decodeString() error {
 		d.rv.SetString(q)
 	}
 	return err
+}
+
+func (d *decoder) decodeArray() error {
+	if d.rv.Type().Elem().Kind() != reflect.String {
+		return fmt.Errorf("allocation type must be [n]stirng")
+	}
+
+	values, err := url.ParseQuery(d.query)
+	if err != nil {
+		return err
+	}
+
+	arrVals, ok := d.getArrayValues(values)
+	if !ok {
+		return nil
+	}
+
+	if len(arrVals) > d.rv.Len() {
+		return fmt.Errorf("array capacity exceeded")
+	}
+
+	arr := reflect.Indirect(reflect.New(reflect.ArrayOf(d.rv.Len(), d.rv.Type().Elem())))
+	for i, v := range arrVals {
+		fmt.Println(arr.Index(i))
+		arr.Index(i).Set(reflect.ValueOf(v))
+	}
+
+	d.rv.Set(arr)
+	return nil
 }
 
 func (d *decoder) decodeSlice() error {
