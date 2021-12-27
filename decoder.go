@@ -1,9 +1,10 @@
 package qstringer
 
 import (
-	"fmt"
+	"errors"
 	"net/url"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -13,17 +14,17 @@ import (
 // add "?" to the beginning and return
 func Decode(s string, v interface{}) error {
 	if v == nil {
-		return fmt.Errorf("nil is not available")
+		return errors.New("nil is not available")
 	}
 
 	rv := reflect.ValueOf(v)
 	if rv.Kind() != reflect.Ptr {
-		return fmt.Errorf("not pointer")
+		return errors.New("not pointer")
 	}
 
 	riv := reflect.Indirect(rv)
 	if !riv.IsValid() {
-		return fmt.Errorf("nil is not available")
+		return errors.New("nil is not available")
 	}
 	d := decoder{query: s, rv: riv}
 
@@ -34,9 +35,11 @@ func Decode(s string, v interface{}) error {
 		return d.decodeArray()
 	case reflect.Slice:
 		return d.decodeSlice()
+	case reflect.Map:
+		return d.decodeMap()
 	}
 
-	return fmt.Errorf("type %s is not available", riv.Kind().String())
+	return errors.New("type " + riv.Kind().String() + " is not available")
 }
 
 type decoder struct {
@@ -44,26 +47,95 @@ type decoder struct {
 	rv    reflect.Value
 }
 
-func (d *decoder) decodeMap(values url.Values) error {
-	for key, vs := range values {
-		// not slice or map
-		if !strings.Contains(key, "[") {
-			if len(vs) == 0 {
-				// it shouldn't pass, but add a skip process just in case.
-				continue
-			}
-			if len(vs) == 1 {
-				// use only first value
-				d.rv.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(vs[0]))
-				continue
-			}
-			d.rv.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(vs))
+func (d *decoder) decodeMap() error {
+	if !d.rv.Type().Key().AssignableTo(reflect.TypeOf("")) {
+		return errors.New("map key must be assignable to a string")
+	}
+	if d.rv.Type().Elem().Kind() != reflect.Interface {
+		return errors.New("map value must be assignable to interface{}")
+	}
+
+	valueMap, err := d.createIntermediateStruct()
+	if err != nil {
+		return err
+	}
+
+	if d.rv.IsNil() {
+		d.rv.Set(reflect.MakeMap(d.rv.Type()))
+	}
+
+	for _, uv := range valueMap {
+		if uv.isString && len(uv.values) == 1 {
+			d.rv.SetMapIndex(reflect.ValueOf(uv.key), reflect.ValueOf(uv.values[0]))
 			continue
 		}
 
-		d.rv.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(vs))
+		if uv.child == nil || len(uv.child) == 0 {
+			d.rv.SetMapIndex(reflect.ValueOf(uv.key), reflect.ValueOf(uv.values))
+			continue
+		}
+
+		// nested array or map
+		val := d.makeMapValueRecursive(uv.child)
+		if q, ok := val.(Q); ok {
+			if aq, ok := d.toArrayQ(q); ok {
+				d.rv.SetMapIndex(reflect.ValueOf(uv.key), reflect.ValueOf(aq))
+				continue
+			}
+		}
+		d.rv.SetMapIndex(reflect.ValueOf(uv.key), reflect.ValueOf(val))
 	}
+
 	return nil
+}
+
+func (d *decoder) makeMapValueRecursive(valueMap urlValueMap) interface{} {
+	q := make(Q)
+	for _, uv := range valueMap {
+		if uv.isString && len(uv.values) == 1 {
+			q[uv.key] = uv.values[0]
+			continue
+		}
+
+		if uv.child == nil || len(uv.child) == 0 {
+			q[uv.key] = uv.values
+			continue
+		}
+
+		// nested array or map
+		q[uv.key] = d.makeMapValueRecursive(uv.child)
+	}
+
+	if aq, ok := d.toArrayQ(q); ok {
+		return aq
+	}
+	return q
+}
+
+func (d *decoder) toArrayQ(q Q) (ArrayQ, bool) {
+	type tmpAq struct {
+		key   string
+		value interface{}
+	}
+	tmp := make([]tmpAq, 0, len(q))
+
+	for key, value := range q {
+		if _, err := strconv.Atoi(key); err != nil {
+			return nil, false
+		}
+		tmp = append(tmp, tmpAq{key: key, value: value})
+	}
+
+	sort.Slice(tmp, func(i, j int) bool {
+		return tmp[i].key < tmp[j].key
+	})
+
+	aq := make(ArrayQ, 0, len(q))
+	for _, v := range tmp {
+		aq = append(aq, v.value)
+	}
+
+	return aq, true
 }
 
 func (d *decoder) decodeString() error {
@@ -76,7 +148,7 @@ func (d *decoder) decodeString() error {
 
 func (d *decoder) decodeArray() error {
 	if d.rv.Type().Elem().Kind() != reflect.String {
-		return fmt.Errorf("allocation type must be [n]stirng")
+		return errors.New("allocation type must be [n]stirng")
 	}
 
 	valueMap, err := d.createIntermediateStruct()
@@ -91,12 +163,11 @@ func (d *decoder) decodeArray() error {
 	arrVals := valueMap.firstValue()
 
 	if len(arrVals) > d.rv.Len() {
-		return fmt.Errorf("array capacity exceeded")
+		return errors.New("array capacity exceeded")
 	}
 
 	arr := reflect.Indirect(reflect.New(reflect.ArrayOf(d.rv.Len(), d.rv.Type().Elem())))
 	for i, v := range arrVals {
-		fmt.Println(arr.Index(i))
 		arr.Index(i).Set(reflect.ValueOf(v))
 	}
 
@@ -106,7 +177,7 @@ func (d *decoder) decodeArray() error {
 
 func (d *decoder) decodeSlice() error {
 	if d.rv.Type().Elem().Kind() != reflect.String {
-		return fmt.Errorf("allocation type must be []stirng")
+		return errors.New("allocation type must be []stirng")
 	}
 
 	valueMap, err := d.createIntermediateStruct()
@@ -201,7 +272,7 @@ func (d *decoder) conpact(valueMap urlValueMap) urlValueMap {
 }
 
 func (d *decoder) toArray(valueMap urlValueMap) ([]string, bool) {
-	ret := make([]string, 0, len(valueMap))
+	tmp := make([]urlValue, 0, len(valueMap))
 
 	for _, uv := range valueMap {
 		// nested array or map
@@ -210,7 +281,7 @@ func (d *decoder) toArray(valueMap urlValueMap) ([]string, bool) {
 		}
 
 		if uv.key == "" {
-			ret = append(ret, uv.values...)
+			tmp = append(tmp, uv)
 			continue
 		}
 
@@ -219,8 +290,18 @@ func (d *decoder) toArray(valueMap urlValueMap) ([]string, bool) {
 			return nil, false
 		}
 
-		ret = append(ret, uv.values...)
+		tmp = append(tmp, uv)
 	}
+
+	sort.Slice(tmp, func(i, j int) bool {
+		return tmp[i].key < tmp[j].key
+	})
+
+	ret := make([]string, 0, len(valueMap))
+	for _, v := range tmp {
+		ret = append(ret, v.values...)
+	}
+
 	return ret, true
 }
 
@@ -228,6 +309,7 @@ type urlValue struct {
 	key      string
 	values   []string
 	isString bool
+	step     int
 	child    urlValueMap
 }
 

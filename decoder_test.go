@@ -63,6 +63,15 @@ func TestDecode(t *testing.T) {
 		{name: "slice of string type - multiple key name", q: "hoge[]=a&fuga[]=2", v: func() *[]string { var a []string; return &a }(), expected: func() []string { var a []string; return a }()},
 
 		// map type
+		{name: "map type", q: "hoge=a", v: func() *qstringer.Q { var a qstringer.Q; return &a }(), expected: qstringer.Q{"hoge": "a"}},
+		{name: "map type - multiple key name", q: "hoge=a&fuga=1", v: func() *qstringer.Q { var a qstringer.Q; return &a }(), expected: qstringer.Q{"hoge": "a", "fuga": "1"}},
+		{name: "map type - duplicate key name", q: "hoge=a&hoge=1", v: func() *qstringer.Q { var a qstringer.Q; return &a }(), expected: qstringer.Q{"hoge": []string{"a", "1"}}},
+		{name: "map type - array key", q: "hoge[]=a&hoge[]=2&hoge[]=3", v: func() *qstringer.Q { var a qstringer.Q; return &a }(), expected: qstringer.Q{"hoge": []string{"a", "2", "3"}}},
+		{name: "map type - index array key", q: "hoge[0]=a&hoge[1]=2&hoge[2]=3", v: func() *qstringer.Q { var a qstringer.Q; return &a }(), expected: qstringer.Q{"hoge": []string{"a", "2", "3"}}},
+
+		{name: "map type - nested array and array", q: "hoge[0][0]=a&hoge[0][1]=2&hoge[0][2]=3", v: func() *qstringer.Q { var a qstringer.Q; return &a }(), expected: qstringer.Q{"hoge": qstringer.ArrayQ{[]string{"a", "2", "3"}}}},
+		{name: "map type - nested map and array", q: "hoge[a][0]=a&hoge[a][1]=2&hoge[a][2]=3", v: func() *qstringer.Q { var a qstringer.Q; return &a }(), expected: qstringer.Q{"hoge": qstringer.Q{"a": []string{"a", "2", "3"}}}},
+		{name: "map type - nested map and map", q: "hoge[a][b]=a&hoge[a][1]=2&hoge[0][a]=3", v: func() *qstringer.Q { var a qstringer.Q; return &a }(), expected: qstringer.Q{"hoge": qstringer.Q{"0": qstringer.Q{"a": "3"}, "a": qstringer.Q{"1": "2", "b": "a"}}}},
 
 		// struct type
 	}
