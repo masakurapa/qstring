@@ -42,6 +42,15 @@ func Decode(s string, v interface{}) error {
 	return errors.New("type " + riv.Kind().String() + " is not available")
 }
 
+func DecodeToMap(s string) (Q, error) {
+	var q Q
+	err := Decode(s, &q)
+	if err != nil {
+		return nil, err
+	}
+	return q, nil
+}
+
 type decoder struct {
 	query string
 	rv    reflect.Value
@@ -309,7 +318,6 @@ type urlValue struct {
 	key      string
 	values   []string
 	isString bool
-	step     int
 	child    urlValueMap
 }
 
