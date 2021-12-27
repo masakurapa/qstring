@@ -79,15 +79,16 @@ func (d *decoder) decodeArray() error {
 		return fmt.Errorf("allocation type must be [n]stirng")
 	}
 
-	values, err := url.ParseQuery(d.query)
+	valueMap, err := d.createIntermediateStruct()
 	if err != nil {
 		return err
 	}
 
-	arrVals, ok := d.getArrayValues(values)
-	if !ok {
+	if len(valueMap) != 1 {
 		return nil
 	}
+
+	arrVals := valueMap.firstValue()
 
 	if len(arrVals) > d.rv.Len() {
 		return fmt.Errorf("array capacity exceeded")
@@ -108,68 +109,134 @@ func (d *decoder) decodeSlice() error {
 		return fmt.Errorf("allocation type must be []stirng")
 	}
 
-	values, err := url.ParseQuery(d.query)
+	valueMap, err := d.createIntermediateStruct()
 	if err != nil {
 		return err
 	}
 
-	arrVals, ok := d.getArrayValues(values)
-	if !ok {
+	if len(valueMap) != 1 {
 		return nil
 	}
 
-	d.rv.Set(reflect.AppendSlice(d.rv, reflect.ValueOf(arrVals)))
+	d.rv.Set(reflect.AppendSlice(d.rv, reflect.ValueOf(valueMap.firstValue())))
 	return nil
 }
 
-// returns true if the key can be converted to an array.
-//
-// valid values
-//   key[]
-//   key[0]
-func (d *decoder) getArrayValues(values url.Values) ([]string, bool) {
-	keys := make(map[string]struct{})
-	arrValues := make([]string, 0)
+func (d *decoder) createIntermediateStruct() (urlValueMap, error) {
+	urlValues, err := url.ParseQuery(d.query)
+	if err != nil {
+		return nil, err
+	}
 
-	for k, vals := range values {
-		startIdx := strings.Index(k, "[")
-		closeIdx := strings.Index(k, "]")
+	valueMap := make(urlValueMap)
 
-		// not array key
-		if startIdx == -1 || closeIdx == -1 {
-			return nil, false
-		}
-		// nested array
-		if strings.Count(k, "[") > 1 {
-			return nil, false
+	for key, values := range urlValues {
+		// convert `key[a][b]` to `[]string{"key", "a", "b"}`
+		splitKeys := strings.Split(key, "[")
+		for i, v := range splitKeys {
+			splitKeys[i] = strings.TrimSuffix(v, "]")
 		}
 
-		key := k[:startIdx]
-		arrayKey := k[startIdx+1 : closeIdx]
+		k := splitKeys[0]
+		if _, ok := valueMap[k]; ok {
+			valueMap[k] = d.toUrlValue(valueMap[k], splitKeys, values)
+			continue
+		}
+		valueMap[k] = d.toUrlValue(urlValue{}, splitKeys, values)
+	}
 
-		// no index array
-		if arrayKey == "" {
-			_, ok := keys[key]
-			if len(keys) > 0 && !ok {
-				return nil, false
-			}
-			keys[key] = struct{}{}
-			arrValues = append(arrValues, vals...)
+	return d.conpact(valueMap), nil
+}
+
+func (d *decoder) toUrlValue(uv urlValue, keys []string, values []string) urlValue {
+	key := keys[0]
+	uv.key = key
+
+	if len(keys) == 1 {
+		uv.values = append(uv.values, values...)
+		uv.isString = true
+		return uv
+	}
+
+	if uv.child == nil {
+		uv.child = make(urlValueMap)
+	}
+
+	nextKey := keys[1]
+	if _, ok := uv.child[nextKey]; ok {
+		uv.child[nextKey] = d.toUrlValue(uv.child[nextKey], keys[1:], values)
+		return uv
+	}
+
+	uv.child[nextKey] = d.toUrlValue(urlValue{}, keys[1:], values)
+	return uv
+}
+
+func (d *decoder) conpact(valueMap urlValueMap) urlValueMap {
+	newMap := make(urlValueMap)
+
+	for _, uv := range valueMap {
+		uv := uv
+
+		// not has child value
+		if uv.child == nil || len(uv.child) == 0 {
+			newMap[uv.key] = uv
 			continue
 		}
 
-		// map
-		if _, err := strconv.Atoi(arrayKey); err != nil {
-			return nil, false
+		// simple array value
+		if arrVals, ok := d.toArray(uv.child); ok {
+			uv.values = arrVals
+			uv.child = nil
+			newMap[uv.key] = uv
+			continue
 		}
 
-		_, ok := keys[key]
-		if len(keys) > 0 && !ok {
-			return nil, false
-		}
-		keys[key] = struct{}{}
-		arrValues = append(arrValues, vals...)
+		// nested array, map
+		uv.child = d.conpact(uv.child)
+		newMap[uv.key] = uv
 	}
 
-	return arrValues, true
+	return newMap
+}
+
+func (d *decoder) toArray(valueMap urlValueMap) ([]string, bool) {
+	ret := make([]string, 0, len(valueMap))
+
+	for _, uv := range valueMap {
+		// nested array or map
+		if uv.child != nil && len(uv.child) > 0 {
+			return nil, false
+		}
+
+		if uv.key == "" {
+			ret = append(ret, uv.values...)
+			continue
+		}
+
+		// if not number, map type
+		if _, err := strconv.Atoi(uv.key); err != nil {
+			return nil, false
+		}
+
+		ret = append(ret, uv.values...)
+	}
+	return ret, true
+}
+
+type urlValue struct {
+	key      string
+	values   []string
+	isString bool
+	child    urlValueMap
+}
+
+type urlValueMap map[string]urlValue
+
+func (vm urlValueMap) firstValue() []string {
+	var val []string
+	for _, v := range vm {
+		val = v.values
+	}
+	return val
 }
