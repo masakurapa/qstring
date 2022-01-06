@@ -163,7 +163,7 @@ func (e *encoder) encodeStruct(key string, rv reflect.Value) error {
 		}
 
 		frv := rv.FieldByName(f.Name)
-		if opt.omitempty && e.isEmptyValue(frv) {
+		if opt.omitempty && isEmptyValue(frv) {
 			continue
 		}
 
@@ -179,22 +179,4 @@ func (e *encoder) makeMapKey(key, ch string) string {
 		return ch
 	}
 	return fmt.Sprintf("%s[%s]", key, ch)
-}
-
-func (e *encoder) isEmptyValue(rv reflect.Value) bool {
-	switch rv.Kind() {
-	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
-		return rv.Len() == 0
-	case reflect.Bool:
-		return !rv.Bool()
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return rv.Int() == 0
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return rv.Uint() == 0
-	case reflect.Float32, reflect.Float64:
-		return rv.Float() == 0
-	case reflect.Interface, reflect.Ptr:
-		return rv.IsNil()
-	}
-	return false
 }

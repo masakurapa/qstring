@@ -9,13 +9,13 @@ import (
 	"github.com/masakurapa/qstringer"
 )
 
-type s struct {
+type es struct {
 	FieldB      bool              `qstringer:"field_b"`
 	FieldI      int               `qstringer:"fieldI"`
 	FieldUIP    *uint             `qstringer:"field-uip"`
 	JSONStr     string            `qstringer:"json_str"`
 	JSONStrP    *string           `qstringer:"json_str-p"`
-	Struct2     s2                `qstringer:"struct2"`
+	Struct2     es2               `qstringer:"struct2"`
 	Slice4Str   []string          `qstringer:"slice-for-str"`
 	Map_Str_Str map[string]string `qstringer:"map_strStr"`
 	Interface   interface{}       `qstringer:"interface"`
@@ -23,7 +23,7 @@ type s struct {
 	privateS    string `qstringer:"private-S"`
 }
 
-type s2 struct {
+type es2 struct {
 	Field    string `qstringer:"field"`
 	NoTag    string
 	privateS string `qstringer:"private-S"`
@@ -33,13 +33,13 @@ func TestEncode(t *testing.T) {
 	v := "1"
 	var uv uint = 200
 
-	sv := s{
+	sv := es{
 		FieldB:      true,
 		FieldI:      100,
 		FieldUIP:    &uv,
 		JSONStr:     "hoge",
 		JSONStrP:    &v,
-		Struct2:     s2{Field: "fuga", NoTag: "ninja", privateS: "fuji"},
+		Struct2:     es2{Field: "fuga", NoTag: "ninja", privateS: "fuji"},
 		Slice4Str:   []string{"1", "3", "5"},
 		Map_Str_Str: map[string]string{"k1": "2", "k2": "4", "k3": "6"},
 		Interface:   "gumi",
@@ -203,7 +203,7 @@ func TestEncode(t *testing.T) {
 		},
 		{
 			name: "struct value is empty and not specify omitempty",
-			q:    s{},
+			q:    es{},
 			expected: strings.Join([]string{
 				"field-uip=",
 				"fieldI=0",
@@ -265,11 +265,11 @@ func TestEncode(t *testing.T) {
 }
 
 func BenchmarkEncode(b *testing.B) {
-	sv := s{
+	sv := es{
 		FieldB:      true,
 		FieldI:      100,
 		JSONStr:     "hoge",
-		Struct2:     s2{Field: "fuga"},
+		Struct2:     es2{Field: "fuga"},
 		Slice4Str:   []string{"1", "3", "5"},
 		Map_Str_Str: map[string]string{"k1": "2", "k2": "4", "k3": "6"},
 		Interface:   "gumi",
