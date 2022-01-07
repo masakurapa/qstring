@@ -7,15 +7,6 @@ import (
 	"strconv"
 )
 
-func DecodeToMap(s string) (Q, error) {
-	var q Q
-	err := Decode(s, &q)
-	if err != nil {
-		return nil, err
-	}
-	return q, nil
-}
-
 func (d *decoder) decodeMap() error {
 	if !d.rv.Type().Key().AssignableTo(reflect.TypeOf("")) {
 		return errors.New("map key must be assignable to a string")

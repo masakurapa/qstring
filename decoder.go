@@ -9,41 +9,6 @@ import (
 	"strings"
 )
 
-// Decode returns the URL-encoded query string
-//
-// add "?" to the beginning and return
-func Decode(s string, v interface{}) error {
-	if v == nil {
-		return errors.New("nil is not available")
-	}
-
-	rv := reflect.ValueOf(v)
-	if rv.Kind() != reflect.Ptr {
-		return errors.New("not pointer")
-	}
-
-	riv := reflect.Indirect(rv)
-	if !riv.IsValid() {
-		return errors.New("nil is not available")
-	}
-	d := decoder{query: s, rv: riv}
-
-	switch riv.Kind() {
-	case reflect.String:
-		return d.decodeString()
-	case reflect.Array:
-		return d.decodeArray()
-	case reflect.Slice:
-		return d.decodeSlice()
-	case reflect.Map:
-		return d.decodeMap()
-	case reflect.Struct:
-		return d.decodeStruct()
-	}
-
-	return errors.New("type " + riv.Kind().String() + " is not available")
-}
-
 type decoder struct {
 	query string
 	rv    reflect.Value
