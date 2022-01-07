@@ -1,7 +1,6 @@
 package qstringer
 
 import (
-	"math"
 	"reflect"
 	"strconv"
 )
@@ -98,11 +97,12 @@ func (d *decoder) setInt(rv reflect.Value, uv urlValue, isPtr bool) {
 		return
 	}
 
-	val, err := strconv.Atoi(uv.values[0])
+	i, err := strconv.ParseInt(uv.values[0], 10, 64)
 	if err != nil {
 		return
 	}
 
+	val := int(i)
 	if isPtr {
 		rv.Set(reflect.ValueOf(&val))
 	} else {
@@ -115,11 +115,8 @@ func (d *decoder) setInt8(rv reflect.Value, uv urlValue, isPtr bool) {
 		return
 	}
 
-	i, err := strconv.Atoi(uv.values[0])
+	i, err := strconv.ParseInt(uv.values[0], 10, 8)
 	if err != nil {
-		return
-	}
-	if math.MinInt8 > i || math.MaxInt8 < i {
 		return
 	}
 
@@ -136,11 +133,8 @@ func (d *decoder) setInt16(rv reflect.Value, uv urlValue, isPtr bool) {
 		return
 	}
 
-	i, err := strconv.Atoi(uv.values[0])
+	i, err := strconv.ParseInt(uv.values[0], 10, 16)
 	if err != nil {
-		return
-	}
-	if math.MinInt16 > i || math.MaxInt16 < i {
 		return
 	}
 
@@ -157,11 +151,8 @@ func (d *decoder) setInt32(rv reflect.Value, uv urlValue, isPtr bool) {
 		return
 	}
 
-	i, err := strconv.Atoi(uv.values[0])
+	i, err := strconv.ParseInt(uv.values[0], 10, 32)
 	if err != nil {
-		return
-	}
-	if math.MinInt32 > i || math.MaxInt32 < i {
 		return
 	}
 
@@ -178,12 +169,11 @@ func (d *decoder) setInt64(rv reflect.Value, uv urlValue, isPtr bool) {
 		return
 	}
 
-	i, err := strconv.Atoi(uv.values[0])
+	val, err := strconv.ParseInt(uv.values[0], 10, 64)
 	if err != nil {
 		return
 	}
 
-	val := int64(i)
 	if isPtr {
 		rv.Set(reflect.ValueOf(&val))
 	} else {
