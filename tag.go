@@ -1,4 +1,4 @@
-package qstringer
+package qstring
 
 import (
 	"reflect"
@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	tagName      = "qstringer"
+	tagName      = "qstring"
 	optSeparator = ","
 	omitempty    = "omitempty"
 )

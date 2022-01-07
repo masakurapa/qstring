@@ -1,4 +1,4 @@
-package qstringer_test
+package qstring_test
 
 import (
 	"fmt"
@@ -7,47 +7,47 @@ import (
 	"testing"
 	"unsafe"
 
-	"github.com/masakurapa/qstringer"
+	"github.com/masakurapa/qstring"
 )
 
 type ds struct {
-	FieldB       bool    `qstringer:"field_b"`
-	FieldI       int     `qstringer:"fieldI"`
-	FieldI8      int8    `qstringer:"fieldI8"`
-	FieldI16     int16   `qstringer:"fieldI16"`
-	FieldI32     int32   `qstringer:"fieldI32"`
-	FieldI64     int64   `qstringer:"fieldI64"`
-	FieldUI8     uint8   `qstringer:"fieldUI8"`
-	FieldUI      uint    `qstringer:"fieldUI"`
-	FieldUI16    uint16  `qstringer:"fieldUI16"`
-	FieldUI32    uint32  `qstringer:"fieldUI32"`
-	FieldUI64    uint64  `qstringer:"fieldUI64"`
-	FieldFloat32 float32 `qstringer:"fieldFloat32"`
-	FieldFloat64 float64 `qstringer:"fieldFloat64"`
-	JSONStr      string  `qstringer:"json_str"`
+	FieldB       bool    `qstring:"field_b"`
+	FieldI       int     `qstring:"fieldI"`
+	FieldI8      int8    `qstring:"fieldI8"`
+	FieldI16     int16   `qstring:"fieldI16"`
+	FieldI32     int32   `qstring:"fieldI32"`
+	FieldI64     int64   `qstring:"fieldI64"`
+	FieldUI8     uint8   `qstring:"fieldUI8"`
+	FieldUI      uint    `qstring:"fieldUI"`
+	FieldUI16    uint16  `qstring:"fieldUI16"`
+	FieldUI32    uint32  `qstring:"fieldUI32"`
+	FieldUI64    uint64  `qstring:"fieldUI64"`
+	FieldFloat32 float32 `qstring:"fieldFloat32"`
+	FieldFloat64 float64 `qstring:"fieldFloat64"`
+	JSONStr      string  `qstring:"json_str"`
 }
 
 type dsp struct {
-	FieldB       *bool    `qstringer:"field_b"`
-	FieldI       *int     `qstringer:"fieldI"`
-	FieldI8      *int8    `qstringer:"fieldI8"`
-	FieldI16     *int16   `qstringer:"fieldI16"`
-	FieldI32     *int32   `qstringer:"fieldI32"`
-	FieldI64     *int64   `qstringer:"fieldI64"`
-	FieldUI8     *uint8   `qstringer:"fieldUI8"`
-	FieldUI      *uint    `qstringer:"fieldUI"`
-	FieldUI16    *uint16  `qstringer:"fieldUI16"`
-	FieldUI32    *uint32  `qstringer:"fieldUI32"`
-	FieldUI64    *uint64  `qstringer:"fieldUI64"`
-	FieldFloat32 *float32 `qstringer:"fieldFloat32"`
-	FieldFloat64 *float64 `qstringer:"fieldFloat64"`
-	JSONStr      *string  `qstringer:"json_str"`
+	FieldB       *bool    `qstring:"field_b"`
+	FieldI       *int     `qstring:"fieldI"`
+	FieldI8      *int8    `qstring:"fieldI8"`
+	FieldI16     *int16   `qstring:"fieldI16"`
+	FieldI32     *int32   `qstring:"fieldI32"`
+	FieldI64     *int64   `qstring:"fieldI64"`
+	FieldUI8     *uint8   `qstring:"fieldUI8"`
+	FieldUI      *uint    `qstring:"fieldUI"`
+	FieldUI16    *uint16  `qstring:"fieldUI16"`
+	FieldUI32    *uint32  `qstring:"fieldUI32"`
+	FieldUI64    *uint64  `qstring:"fieldUI64"`
+	FieldFloat32 *float32 `qstring:"fieldFloat32"`
+	FieldFloat64 *float64 `qstring:"fieldFloat64"`
+	JSONStr      *string  `qstring:"json_str"`
 }
 
 type ds2 struct {
-	Field    string `qstringer:"field"`
+	Field    string `qstring:"field"`
 	NoTag    string
-	privateS string `qstringer:"private-S"`
+	privateS string `qstring:"private-S"`
 }
 
 func TestDecode(t *testing.T) {
@@ -103,15 +103,15 @@ func TestDecode(t *testing.T) {
 		{name: "slice of string type - multiple key name", q: "hoge[]=a&fuga[]=2", v: func() *[]string { var a []string; return &a }(), expected: func() []string { var a []string; return a }()},
 
 		// map type
-		{name: "map type", q: "hoge=a", v: func() *qstringer.Q { var a qstringer.Q; return &a }(), expected: qstringer.Q{"hoge": "a"}},
-		{name: "map type - multiple key name", q: "hoge=a&fuga=1", v: func() *qstringer.Q { var a qstringer.Q; return &a }(), expected: qstringer.Q{"hoge": "a", "fuga": "1"}},
-		{name: "map type - duplicate key name", q: "hoge=a&hoge=1", v: func() *qstringer.Q { var a qstringer.Q; return &a }(), expected: qstringer.Q{"hoge": []string{"a", "1"}}},
-		{name: "map type - array key", q: "hoge[]=a&hoge[]=2&hoge[]=3", v: func() *qstringer.Q { var a qstringer.Q; return &a }(), expected: qstringer.Q{"hoge": []string{"a", "2", "3"}}},
-		{name: "map type - index array key", q: "hoge[0]=a&hoge[1]=2&hoge[2]=3", v: func() *qstringer.Q { var a qstringer.Q; return &a }(), expected: qstringer.Q{"hoge": []string{"a", "2", "3"}}},
+		{name: "map type", q: "hoge=a", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": "a"}},
+		{name: "map type - multiple key name", q: "hoge=a&fuga=1", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": "a", "fuga": "1"}},
+		{name: "map type - duplicate key name", q: "hoge=a&hoge=1", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": []string{"a", "1"}}},
+		{name: "map type - array key", q: "hoge[]=a&hoge[]=2&hoge[]=3", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": []string{"a", "2", "3"}}},
+		{name: "map type - index array key", q: "hoge[0]=a&hoge[1]=2&hoge[2]=3", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": []string{"a", "2", "3"}}},
 
-		{name: "map type - nested array and array", q: "hoge[0][0]=a&hoge[0][1]=2&hoge[0][2]=3", v: func() *qstringer.Q { var a qstringer.Q; return &a }(), expected: qstringer.Q{"hoge": qstringer.ArrayQ{[]string{"a", "2", "3"}}}},
-		{name: "map type - nested map and array", q: "hoge[a][0]=a&hoge[a][1]=2&hoge[a][2]=3", v: func() *qstringer.Q { var a qstringer.Q; return &a }(), expected: qstringer.Q{"hoge": qstringer.Q{"a": []string{"a", "2", "3"}}}},
-		{name: "map type - nested map and map", q: "hoge[a][b]=a&hoge[a][1]=2&hoge[0][a]=3", v: func() *qstringer.Q { var a qstringer.Q; return &a }(), expected: qstringer.Q{"hoge": qstringer.Q{"0": qstringer.Q{"a": "3"}, "a": qstringer.Q{"1": "2", "b": "a"}}}},
+		{name: "map type - nested array and array", q: "hoge[0][0]=a&hoge[0][1]=2&hoge[0][2]=3", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": qstring.ArrayQ{[]string{"a", "2", "3"}}}},
+		{name: "map type - nested map and array", q: "hoge[a][0]=a&hoge[a][1]=2&hoge[a][2]=3", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": qstring.Q{"a": []string{"a", "2", "3"}}}},
+		{name: "map type - nested map and map", q: "hoge[a][b]=a&hoge[a][1]=2&hoge[0][a]=3", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": qstring.Q{"0": qstring.Q{"a": "3"}, "a": qstring.Q{"1": "2", "b": "a"}}}},
 
 		// struct type
 		{name: "struct type - bool", q: "field_b=1", v: dsP(), expected: ds{FieldB: true}},
@@ -237,7 +237,7 @@ func TestDecode(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			q := strings.ReplaceAll(tc.q, "%5B", "[")
 			q = strings.ReplaceAll(q, "%5D", "]")
-			err := qstringer.Decode(q, tc.v)
+			err := qstring.Decode(q, tc.v)
 			if err != nil {
 				if tc.err == nil {
 					t.Fatalf("Decode() should not returns error, got %q", err)

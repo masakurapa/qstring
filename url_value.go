@@ -1,4 +1,4 @@
-package qstringer
+package qstring
 
 type urlValueMap map[string]urlValue
 

@@ -1,4 +1,4 @@
-package qstringer
+package qstring
 
 import (
 	"errors"
@@ -17,8 +17,6 @@ type ArrayQ []interface{}
 // Encode returns the URL-encoded query string.
 //
 // Support struct, map type where the key is a string.
-//
-// Add "?" to the beginning and return.
 //
 // By default, a nil value will be output.
 //
