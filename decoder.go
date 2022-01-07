@@ -1,7 +1,6 @@
 package qstring
 
 import (
-	"errors"
 	"net/url"
 	"reflect"
 	"sort"
@@ -11,20 +10,42 @@ import (
 
 type decoder struct {
 	query string
-	rv    reflect.Value
 }
 
-func (d *decoder) decodeString() error {
+func (d *decoder) decode(v interface{}) error {
+	rv := reflect.ValueOf(v)
+	if rv.Kind() != reflect.Ptr || rv.IsNil() {
+		return &InvalidDecodeError{reflect.TypeOf(v)}
+	}
+
+	rv = rv.Elem()
+	switch rv.Kind() {
+	case reflect.String:
+		return d.decodeString(rv)
+	case reflect.Array:
+		return d.decodeArray(rv)
+	case reflect.Slice:
+		return d.decodeSlice(rv)
+	case reflect.Map:
+		return d.decodeMap(rv)
+	case reflect.Struct:
+		return d.decodeStruct(rv)
+	}
+
+	return &UnsupportedTypeError{rv.Type()}
+}
+
+func (d *decoder) decodeString(rv reflect.Value) error {
 	q, err := url.QueryUnescape(d.query)
 	if err == nil {
-		d.rv.SetString(q)
+		rv.SetString(q)
 	}
 	return err
 }
 
-func (d *decoder) decodeArray() error {
-	if d.rv.Type().Elem().Kind() != reflect.String {
-		return errors.New("allocation type must be [n]stirng")
+func (d *decoder) decodeArray(rv reflect.Value) error {
+	if rv.Type().Elem().Kind() != reflect.String {
+		return &UnsupportedTypeError{rv.Type()}
 	}
 
 	valueMap, err := d.createIntermediateStruct()
@@ -38,22 +59,22 @@ func (d *decoder) decodeArray() error {
 
 	arrVals := valueMap.firstValue()
 
-	if len(arrVals) > d.rv.Len() {
-		return errors.New("array capacity exceeded")
+	if len(arrVals) > rv.Len() {
+		return &ArrayIndexOutOfRangeDecodeError{rv.Type(), len(arrVals)}
 	}
 
-	arr := reflect.Indirect(reflect.New(reflect.ArrayOf(d.rv.Len(), d.rv.Type().Elem())))
+	arr := reflect.Indirect(reflect.New(reflect.ArrayOf(rv.Len(), rv.Type().Elem())))
 	for i, v := range arrVals {
 		arr.Index(i).Set(reflect.ValueOf(v))
 	}
 
-	d.rv.Set(arr)
+	rv.Set(arr)
 	return nil
 }
 
-func (d *decoder) decodeSlice() error {
-	if d.rv.Type().Elem().Kind() != reflect.String {
-		return errors.New("allocation type must be []stirng")
+func (d *decoder) decodeSlice(rv reflect.Value) error {
+	if rv.Type().Elem().Kind() != reflect.String {
+		return &UnsupportedTypeError{rv.Type()}
 	}
 
 	valueMap, err := d.createIntermediateStruct()
@@ -65,7 +86,7 @@ func (d *decoder) decodeSlice() error {
 		return nil
 	}
 
-	d.rv.Set(reflect.AppendSlice(d.rv, reflect.ValueOf(valueMap.firstValue())))
+	rv.Set(reflect.AppendSlice(rv, reflect.ValueOf(valueMap.firstValue())))
 	return nil
 }
 

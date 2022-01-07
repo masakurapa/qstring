@@ -60,32 +60,32 @@ func TestDecode(t *testing.T) {
 		err      error
 		expected interface{}
 	}{
-		{name: "nil", q: q, v: nil, err: fmt.Errorf("nil is not available")},
-		{name: "not pointer", q: q, v: func() string { return "" }(), err: fmt.Errorf("not pointer")},
+		{name: "nil", q: q, v: nil, err: fmt.Errorf("nil is not supported")},
+		{name: "not pointer", q: q, v: func() string { return "" }(), err: fmt.Errorf("non-pointer is not supported")},
 
-		// unavailable types
-		{name: "bool type", q: q, v: boolP(false), err: fmt.Errorf("type bool is not available")},
-		{name: "int type", q: q, v: intP(0), err: fmt.Errorf("type int is not available")},
-		{name: "int64 type", q: q, v: int64P(0), err: fmt.Errorf("type int64 is not available")},
-		{name: "int32 type", q: q, v: int32P(0), err: fmt.Errorf("type int32 is not available")},
-		{name: "int16 type", q: q, v: int16P(0), err: fmt.Errorf("type int16 is not available")},
-		{name: "int8 type", q: q, v: int8P(0), err: fmt.Errorf("type int8 is not available")},
-		{name: "uint type", q: q, v: uintP(0), err: fmt.Errorf("type uint is not available")},
-		{name: "uint64 type", q: q, v: uint64P(0), err: fmt.Errorf("type uint64 is not available")},
-		{name: "uint32 type", q: q, v: uint32P(0), err: fmt.Errorf("type uint32 is not available")},
-		{name: "uint16 type", q: q, v: uint16P(0), err: fmt.Errorf("type uint16 is not available")},
-		{name: "uint8 type", q: q, v: uint8P(0), err: fmt.Errorf("type uint8 is not available")},
-		{name: "float64 type", q: q, v: float64P(0), err: fmt.Errorf("type float64 is not available")},
-		{name: "float32 type", q: q, v: float32P(0), err: fmt.Errorf("type float32 is not available")},
-		// {name: "array type", q: q, v: func() *bool { var a bool; return &a }(), err: fmt.Errorf("type array is not available")},
-		// {name: "slice type", q: q, v: func() *bool { var a bool; return &a }(), err: fmt.Errorf("type slice is not available")},
-		{name: "uintptr type", q: q, v: func() *uintptr { var a uintptr; return &a }(), err: fmt.Errorf("type uintptr is not available")},
-		{name: "complex64 type", q: q, v: func() *complex64 { var a complex64; return &a }(), err: fmt.Errorf("type complex64 is not available")},
-		{name: "complex128 type", q: q, v: func() *complex128 { var a complex128; return &a }(), err: fmt.Errorf("type complex128 is not available")},
-		// {name: "chan type", q: q, v: func() *chan { var a chan; return &a }(), err: fmt.Errorf("type chan is not available")},
-		{name: "func type", q: q, v: func() *string { return nil }, err: fmt.Errorf("not pointer")},
-		{name: "nil ptr type", q: q, v: func() *bool { return nil }(), err: fmt.Errorf("nil is not available")},
-		{name: "unsafe pointer type", q: q, v: func() *unsafe.Pointer { var a unsafe.Pointer; return &a }(), err: fmt.Errorf("type unsafe.Pointer is not available")},
+		// unsupported type
+		{name: "bool type", q: q, v: boolP(false), err: fmt.Errorf("bool is not supported")},
+		{name: "int type", q: q, v: intP(0), err: fmt.Errorf("int is not supported")},
+		{name: "int64 type", q: q, v: int64P(0), err: fmt.Errorf("int64 is not supported")},
+		{name: "int32 type", q: q, v: int32P(0), err: fmt.Errorf("int32 is not supported")},
+		{name: "int16 type", q: q, v: int16P(0), err: fmt.Errorf("int16 is not supported")},
+		{name: "int8 type", q: q, v: int8P(0), err: fmt.Errorf("int8 is not supported")},
+		{name: "uint type", q: q, v: uintP(0), err: fmt.Errorf("uint is not supported")},
+		{name: "uint64 type", q: q, v: uint64P(0), err: fmt.Errorf("uint64 is not supported")},
+		{name: "uint32 type", q: q, v: uint32P(0), err: fmt.Errorf("uint32 is not supported")},
+		{name: "uint16 type", q: q, v: uint16P(0), err: fmt.Errorf("uint16 is not supported")},
+		{name: "uint8 type", q: q, v: uint8P(0), err: fmt.Errorf("uint8 is not supported")},
+		{name: "float64 type", q: q, v: float64P(0), err: fmt.Errorf("float64 is not supported")},
+		{name: "float32 type", q: q, v: float32P(0), err: fmt.Errorf("float32 is not supported")},
+		// {name: "array type", q: q, v: func() *bool { var a bool; return &a }(), err: fmt.Errorf("array is not supported")},
+		// {name: "slice type", q: q, v: func() *bool { var a bool; return &a }(), err: fmt.Errorf("slice is not supported")},
+		{name: "uintptr type", q: q, v: func() *uintptr { var a uintptr; return &a }(), err: fmt.Errorf("uintptr is not supported")},
+		{name: "complex64 type", q: q, v: func() *complex64 { var a complex64; return &a }(), err: fmt.Errorf("complex64 is not supported")},
+		{name: "complex128 type", q: q, v: func() *complex128 { var a complex128; return &a }(), err: fmt.Errorf("complex128 is not supported")},
+		// {name: "chan type", q: q, v: func() *chan { var a chan; return &a }(), err: fmt.Errorf("chan is not supported")},
+		{name: "func type", q: q, v: func() *string { return nil }, err: fmt.Errorf("non-pointer is not supported")},
+		{name: "nil ptr type", q: q, v: func() *bool { return nil }(), err: fmt.Errorf("nil ptr is not supported")},
+		{name: "unsafe pointer type", q: q, v: func() *unsafe.Pointer { var a unsafe.Pointer; return &a }(), err: fmt.Errorf("unsafe.Pointer is not supported")},
 
 		// string type
 		{name: "string type with quote", q: "?hoge[key]=fuga", v: stringP(""), expected: "?hoge[key]=fuga"},
@@ -93,13 +93,13 @@ func TestDecode(t *testing.T) {
 
 		// array type
 		{name: "array of string type", q: "hoge[]=a&hoge[]=2&hoge[]=3", v: func() *[3]string { var a [3]string; return &a }(), expected: [3]string{"a", "2", "3"}},
-		{name: "array of string type - capacity exceeded", q: "hoge[]=a&hoge[]=2&hoge[]=3&hoge[]=4", v: func() *[3]string { var a [3]string; return &a }(), err: fmt.Errorf("array capacity exceeded")},
+		{name: "array of string type - capacity exceeded", q: "hoge[]=a&hoge[]=2&hoge[]=3&hoge[]=4", v: func() *[3]string { var a [3]string; return &a }(), err: fmt.Errorf("index out of range [4] with [3]string")},
 		{name: "array of string type - multiple key name", q: "hoge[]=a&fuga[]=2", v: func() *[3]string { var a [3]string; return &a }(), expected: [3]string{}},
-		{name: "array of int type", q: "hoge[]=1", v: func() *[3]int { var a [3]int; return &a }(), err: fmt.Errorf("allocation type must be [n]stirng")},
+		{name: "array of int type", q: "hoge[]=1", v: func() *[3]int { var a [3]int; return &a }(), err: fmt.Errorf("[3]int is not supported")},
 
 		// slice type
 		{name: "slice of string type", q: "hoge[]=a&hoge[]=2&hoge[]=3", v: func() *[]string { var a []string; return &a }(), expected: []string{"a", "2", "3"}},
-		{name: "slice of int type", q: "hoge[]=1", v: func() *[]int { var a []int; return &a }(), err: fmt.Errorf("allocation type must be []stirng")},
+		{name: "slice of int type", q: "hoge[]=1", v: func() *[]int { var a []int; return &a }(), err: fmt.Errorf("[]int is not supported")},
 		{name: "slice of string type - multiple key name", q: "hoge[]=a&fuga[]=2", v: func() *[]string { var a []string; return &a }(), expected: func() []string { var a []string; return a }()},
 
 		// map type

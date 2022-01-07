@@ -1,18 +1,14 @@
 package qstring
 
 import (
-	"errors"
 	"reflect"
 	"sort"
 	"strconv"
 )
 
-func (d *decoder) decodeMap() error {
-	if !d.rv.Type().Key().AssignableTo(reflect.TypeOf("")) {
-		return errors.New("map key must be assignable to a string")
-	}
-	if d.rv.Type().Elem().Kind() != reflect.Interface {
-		return errors.New("map value must be assignable to interface{}")
+func (d *decoder) decodeMap(rv reflect.Value) error {
+	if rv.Type().Key().Kind() != reflect.String || rv.Type().Elem().Kind() != reflect.Interface {
+		return &UnsupportedTypeError{rv.Type()}
 	}
 
 	valueMap, err := d.createIntermediateStruct()
@@ -20,18 +16,18 @@ func (d *decoder) decodeMap() error {
 		return err
 	}
 
-	if d.rv.IsNil() {
-		d.rv.Set(reflect.MakeMap(d.rv.Type()))
+	if rv.IsNil() {
+		rv.Set(reflect.MakeMap(rv.Type()))
 	}
 
 	for _, uv := range valueMap {
 		if uv.isString && len(uv.values) == 1 {
-			d.rv.SetMapIndex(reflect.ValueOf(uv.key), reflect.ValueOf(uv.values[0]))
+			rv.SetMapIndex(reflect.ValueOf(uv.key), reflect.ValueOf(uv.values[0]))
 			continue
 		}
 
 		if uv.child == nil || len(uv.child) == 0 {
-			d.rv.SetMapIndex(reflect.ValueOf(uv.key), reflect.ValueOf(uv.values))
+			rv.SetMapIndex(reflect.ValueOf(uv.key), reflect.ValueOf(uv.values))
 			continue
 		}
 
@@ -39,11 +35,11 @@ func (d *decoder) decodeMap() error {
 		val := d.makeMapValueRecursive(uv.child)
 		if q, ok := val.(Q); ok {
 			if aq, ok := d.toArrayQ(q); ok {
-				d.rv.SetMapIndex(reflect.ValueOf(uv.key), reflect.ValueOf(aq))
+				rv.SetMapIndex(reflect.ValueOf(uv.key), reflect.ValueOf(aq))
 				continue
 			}
 		}
-		d.rv.SetMapIndex(reflect.ValueOf(uv.key), reflect.ValueOf(val))
+		rv.SetMapIndex(reflect.ValueOf(uv.key), reflect.ValueOf(val))
 	}
 
 	return nil

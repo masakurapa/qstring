@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"strings"
 )
 
 const (
@@ -13,6 +14,44 @@ const (
 
 type encoder struct {
 	v url.Values
+}
+
+func (e *encoder) encode2(v interface{}) (string, error) {
+	rv := reflect.ValueOf(v)
+	if v == nil || (rv.Kind() == reflect.Ptr && rv.IsNil()) {
+		return "", &InvalidEncodeError{reflect.TypeOf(v)}
+	}
+
+	e.v = make(url.Values)
+
+	if rv.Kind() == reflect.Ptr {
+		rv = rv.Elem()
+	}
+
+	switch rv.Kind() {
+	case reflect.Map:
+		if err := e.encodeMap("", rv); err != nil {
+			return "", err
+		}
+	case reflect.Struct:
+		if err := e.encodeStruct("", rv); err != nil {
+			return "", err
+		}
+	case reflect.String:
+		q := ""
+		if strings.HasPrefix(rv.String(), que) {
+			q = que
+		}
+		s := strings.TrimPrefix(rv.String(), que)
+		return q + strings.ReplaceAll(url.QueryEscape(s), "%3D", "="), nil
+	default:
+		return "", &UnsupportedTypeError{rv.Type()}
+	}
+
+	if len(e.v) == 0 {
+		return "", nil
+	}
+	return e.v.Encode(), nil
 }
 
 func (e *encoder) encode(key string, rv reflect.Value) error {
@@ -50,7 +89,7 @@ func (e *encoder) encode(key string, rv reflect.Value) error {
 		}
 		return e.encode(key, reflect.Indirect(rv))
 	default:
-		return fmt.Errorf("type %s is not available (key: %s)", rv.Kind().String(), key)
+		return &UnsupportedTypeError{rv.Type()}
 	}
 
 	return nil
@@ -66,11 +105,7 @@ func (e *encoder) encodeMap(key string, rv reflect.Value) error {
 	for iter.Next() {
 		// map key must be a string
 		if iter.Key().Kind() != reflect.String {
-			if key == "" {
-				return fmt.Errorf("the key of the map type must be a string")
-			} else {
-				return fmt.Errorf("the key of the map type must be a string (key: %s)", key)
-			}
+			return &UnsupportedTypeError{rv.Type()}
 		}
 
 		if err := e.encode(e.makeMapKey(key, iter.Key().String()), iter.Value()); err != nil {

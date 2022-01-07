@@ -5,14 +5,14 @@ import (
 	"strconv"
 )
 
-func (d *decoder) decodeStruct() error {
+func (d *decoder) decodeStruct(rv reflect.Value) error {
 	valueMap, err := d.createIntermediateStruct()
 	if err != nil {
 		return err
 	}
 
-	for i := 0; i < d.rv.NumField(); i++ {
-		f := d.rv.Type().Field(i)
+	for i := 0; i < rv.NumField(); i++ {
+		f := rv.Type().Field(i)
 		if !f.IsExported() {
 			continue
 		}
@@ -31,7 +31,7 @@ func (d *decoder) decodeStruct() error {
 		// 	continue
 		// }
 
-		frv := d.rv.FieldByName(f.Name)
+		frv := rv.FieldByName(f.Name)
 		if frv.Kind() == reflect.Ptr {
 			d.setTypeVlaue(frv.Type().Elem(), frv, val, true)
 		} else {

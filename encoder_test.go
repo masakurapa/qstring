@@ -53,32 +53,32 @@ func TestEncode(t *testing.T) {
 		err      error
 		expected string
 	}{
-		{name: "nil", q: nil, err: fmt.Errorf("nil is not available")},
+		{name: "nil", q: nil, err: fmt.Errorf("nil is not supported")},
 
-		// unavailable types
-		{name: "bool type", q: true, err: fmt.Errorf("type bool is not available")},
-		{name: "int type", q: int(123), err: fmt.Errorf("type int is not available")},
-		{name: "int64 type", q: int64(123), err: fmt.Errorf("type int64 is not available")},
-		{name: "int32 type", q: int32(123), err: fmt.Errorf("type int32 is not available")},
-		{name: "int16 type", q: int16(123), err: fmt.Errorf("type int16 is not available")},
-		{name: "int8 type", q: int8(123), err: fmt.Errorf("type int8 is not available")},
-		{name: "uint type", q: uint(123), err: fmt.Errorf("type uint is not available")},
-		{name: "uint64 type", q: uint64(123), err: fmt.Errorf("type uint64 is not available")},
-		{name: "uint32 type", q: uint32(123), err: fmt.Errorf("type uint32 is not available")},
-		{name: "uint16 type", q: uint16(123), err: fmt.Errorf("type uint16 is not available")},
-		{name: "uint8 type", q: uint8(123), err: fmt.Errorf("type uint8 is not available")},
-		{name: "float64 type", q: float64(123.456), err: fmt.Errorf("type float64 is not available")},
-		{name: "float32 type", q: float32(123.456), err: fmt.Errorf("type float32 is not available")},
-		{name: "array type", q: [3]string{"1", "2", "3"}, err: fmt.Errorf("type array is not available")},
-		{name: "slice type", q: []string{"1", "2", "3"}, err: fmt.Errorf("type slice is not available")},
-		{name: "uintptr type", q: uintptr(1), err: fmt.Errorf("type uintptr is not available")},
-		{name: "complex64 type", q: complex64(1), err: fmt.Errorf("type complex64 is not available")},
-		{name: "complex128 type", q: complex128(1), err: fmt.Errorf("type complex128 is not available")},
-		{name: "chan type", q: make(chan int), err: fmt.Errorf("type chan is not available")},
-		{name: "func type", q: func() {}, err: fmt.Errorf("type func is not available")},
-		{name: "ptr type", q: func() *uint { return &uv }(), err: fmt.Errorf("type uint is not available")},
-		{name: "nil ptr type", q: func() *string { return nil }(), err: fmt.Errorf("nil is not available")},
-		{name: "unsafe pointer type", q: unsafe.Pointer(&v), err: fmt.Errorf("type unsafe.Pointer is not available")},
+		// unsupported types
+		{name: "bool type", q: true, err: fmt.Errorf("bool is not supported")},
+		{name: "int type", q: int(123), err: fmt.Errorf("int is not supported")},
+		{name: "int64 type", q: int64(123), err: fmt.Errorf("int64 is not supported")},
+		{name: "int32 type", q: int32(123), err: fmt.Errorf("int32 is not supported")},
+		{name: "int16 type", q: int16(123), err: fmt.Errorf("int16 is not supported")},
+		{name: "int8 type", q: int8(123), err: fmt.Errorf("int8 is not supported")},
+		{name: "uint type", q: uint(123), err: fmt.Errorf("uint is not supported")},
+		{name: "uint64 type", q: uint64(123), err: fmt.Errorf("uint64 is not supported")},
+		{name: "uint32 type", q: uint32(123), err: fmt.Errorf("uint32 is not supported")},
+		{name: "uint16 type", q: uint16(123), err: fmt.Errorf("uint16 is not supported")},
+		{name: "uint8 type", q: uint8(123), err: fmt.Errorf("uint8 is not supported")},
+		{name: "float64 type", q: float64(123.456), err: fmt.Errorf("float64 is not supported")},
+		{name: "float32 type", q: float32(123.456), err: fmt.Errorf("float32 is not supported")},
+		{name: "array type", q: [3]string{"1", "2", "3"}, err: fmt.Errorf("[3]string is not supported")},
+		{name: "slice type", q: []string{"1", "2", "3"}, err: fmt.Errorf("[]string is not supported")},
+		{name: "uintptr type", q: uintptr(1), err: fmt.Errorf("uintptr is not supported")},
+		{name: "complex64 type", q: complex64(1), err: fmt.Errorf("complex64 is not supported")},
+		{name: "complex128 type", q: complex128(1), err: fmt.Errorf("complex128 is not supported")},
+		{name: "chan type", q: make(chan int), err: fmt.Errorf("chan is not supported")},
+		{name: "func type", q: func() {}, err: fmt.Errorf("func is not supported")},
+		{name: "ptr type", q: func() *uint { return &uv }(), err: fmt.Errorf("uint is not supported")},
+		{name: "nil ptr type", q: func() *string { return nil }(), err: fmt.Errorf("nil ptr is not supported")},
+		{name: "unsafe pointer type", q: unsafe.Pointer(&v), err: fmt.Errorf("unsafe.Pointer is not supported")},
 
 		//
 		// string type
@@ -144,11 +144,11 @@ func TestEncode(t *testing.T) {
 			expected: "key[key1][0]=1&key[key1][1]=2&key[key1][2]=3&key[key2][0]=1&key[key2][1]=2&key[key2][2]=true",
 		},
 		// unavailable map value types
-		{name: "map value type is uintptr", q: qstring.Q{"key": uintptr(1)}, err: fmt.Errorf("type uintptr is not available (key: key)")},
-		{name: "map value type is complex64", q: qstring.Q{"key": complex64(1)}, err: fmt.Errorf("type complex64 is not available (key: key)")},
-		{name: "map value type is complex128", q: qstring.Q{"key": complex128(1)}, err: fmt.Errorf("type complex128 is not available (key: key)")},
-		{name: "map value type is chan", q: qstring.Q{"key": make(chan int)}, err: fmt.Errorf("type chan is not available (key: key)")},
-		{name: "map value type is func", q: qstring.Q{"key": func() {}}, err: fmt.Errorf("type func is not available (key: key)")},
+		{name: "map value type is uintptr", q: qstring.Q{"key": uintptr(1)}, err: fmt.Errorf("uintptr is not supported")},
+		{name: "map value type is complex64", q: qstring.Q{"key": complex64(1)}, err: fmt.Errorf("complex64 is not supported")},
+		{name: "map value type is complex128", q: qstring.Q{"key": complex128(1)}, err: fmt.Errorf("complex128 is not supported")},
+		{name: "map value type is chan", q: qstring.Q{"key": make(chan int)}, err: fmt.Errorf("chan is not supported")},
+		{name: "map value type is func", q: qstring.Q{"key": func() {}}, err: fmt.Errorf("func is not supported")},
 		{
 			name: "map value type is struct",
 			q:    qstring.Q{"key": sv},
@@ -165,9 +165,9 @@ func TestEncode(t *testing.T) {
 			}, "&"),
 		},
 
-		{name: "map value type is unsafe pointer", q: qstring.Q{"key": unsafe.Pointer(&v)}, err: fmt.Errorf("type unsafe.Pointer is not available (key: key)")},
+		{name: "map value type is unsafe pointer", q: qstring.Q{"key": unsafe.Pointer(&v)}, err: fmt.Errorf("unsafe.Pointer is not supported")},
 		// map key is not string type
-		{name: "uintptr type", q: map[int]string{100: "val"}, err: fmt.Errorf("the key of the map type must be a string")},
+		{name: "uintptr type", q: map[int]string{100: "val"}, err: fmt.Errorf("map[int]string is not supported")},
 
 		//
 		// struct type
