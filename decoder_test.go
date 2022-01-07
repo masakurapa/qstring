@@ -44,11 +44,11 @@ type dsp struct {
 	JSONStr      *string  `qstring:"json_str"`
 }
 
-type ds2 struct {
-	Field    string `qstring:"field"`
-	NoTag    string
-	privateS string `qstring:"private-S"`
-}
+// type ds2 struct {
+// 	Field    string `qstring:"field"`
+// 	NoTag    string
+// 	privateS string `qstring:"private-S"`
+// }
 
 func TestDecode(t *testing.T) {
 	q := "test=1"
