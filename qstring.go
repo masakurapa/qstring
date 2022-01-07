@@ -16,7 +16,7 @@ type ArrayQ []interface{}
 // Please specify option "omitempty" in the tag.
 func Encode(v interface{}) (string, error) {
 	e := encoder{}
-	return e.encode2(v)
+	return e.encode(v)
 }
 
 // Decode returns the URL-encoded query string
