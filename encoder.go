@@ -16,7 +16,7 @@ type encoder struct {
 	v url.Values
 }
 
-func (e *encoder) encode2(v interface{}) (string, error) {
+func (e *encoder) encode(v interface{}) (string, error) {
 	rv := reflect.ValueOf(v)
 	if v == nil || (rv.Kind() == reflect.Ptr && rv.IsNil()) {
 		return "", &InvalidEncodeError{reflect.TypeOf(v)}
@@ -54,7 +54,7 @@ func (e *encoder) encode2(v interface{}) (string, error) {
 	return e.v.Encode(), nil
 }
 
-func (e *encoder) encode(key string, rv reflect.Value) error {
+func (e *encoder) encodeByType(key string, rv reflect.Value) error {
 	switch rv.Kind() {
 	case reflect.Bool:
 		e.v.Add(key, fmt.Sprintf("%v", rv.Bool()))
@@ -81,13 +81,13 @@ func (e *encoder) encode(key string, rv reflect.Value) error {
 			e.v.Add(key, defaultNilValue)
 			return nil
 		}
-		return e.encode(key, reflect.ValueOf(rv.Interface()))
+		return e.encodeByType(key, reflect.ValueOf(rv.Interface()))
 	case reflect.Ptr:
 		if rv.IsNil() {
 			e.v.Add(key, defaultNilValue)
 			return nil
 		}
-		return e.encode(key, reflect.Indirect(rv))
+		return e.encodeByType(key, reflect.Indirect(rv))
 	default:
 		return &UnsupportedTypeError{rv.Type()}
 	}
@@ -108,7 +108,7 @@ func (e *encoder) encodeMap(key string, rv reflect.Value) error {
 			return &UnsupportedTypeError{rv.Type()}
 		}
 
-		if err := e.encode(e.makeMapKey(key, iter.Key().String()), iter.Value()); err != nil {
+		if err := e.encodeByType(e.makeMapKey(key, iter.Key().String()), iter.Value()); err != nil {
 			return err
 		}
 	}
@@ -117,7 +117,7 @@ func (e *encoder) encodeMap(key string, rv reflect.Value) error {
 
 func (e *encoder) encodeArray(key string, rv reflect.Value) error {
 	for i := 0; i < rv.Len(); i++ {
-		if err := e.encode(fmt.Sprintf("%s[%d]", key, i), rv.Index(i)); err != nil {
+		if err := e.encodeByType(fmt.Sprintf("%s[%d]", key, i), rv.Index(i)); err != nil {
 			return err
 		}
 	}
@@ -149,7 +149,7 @@ func (e *encoder) encodeStruct(key string, rv reflect.Value) error {
 			continue
 		}
 
-		if err := e.encode(e.makeMapKey(key, tag), frv); err != nil {
+		if err := e.encodeByType(e.makeMapKey(key, tag), frv); err != nil {
 			return err
 		}
 	}
