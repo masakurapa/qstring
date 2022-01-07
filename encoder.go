@@ -1,9 +1,9 @@
 package qstring
 
 import (
-	"fmt"
 	"net/url"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -57,15 +57,19 @@ func (e *encoder) encode(v interface{}) (string, error) {
 func (e *encoder) encodeByType(key string, rv reflect.Value) error {
 	switch rv.Kind() {
 	case reflect.Bool:
-		e.v.Add(key, fmt.Sprintf("%v", rv.Bool()))
+		bv := "true"
+		if !rv.Bool() {
+			bv = "false"
+		}
+		e.v.Add(key, bv)
 	case reflect.Int, reflect.Int64, reflect.Int32, reflect.Int16, reflect.Int8:
-		e.v.Add(key, fmt.Sprintf("%d", rv.Int()))
+		e.v.Add(key, strconv.FormatInt(rv.Int(), 10))
 	case reflect.Uint, reflect.Uint64, reflect.Uint32, reflect.Uint16, reflect.Uint8:
-		e.v.Add(key, fmt.Sprintf("%d", rv.Uint()))
+		e.v.Add(key, strconv.FormatUint(rv.Uint(), 10))
 	case reflect.Float32:
-		e.v.Add(key, fmt.Sprintf("%v", float32(rv.Float())))
+		e.v.Add(key, strconv.FormatFloat(rv.Float(), 'f', -1, 32))
 	case reflect.Float64:
-		e.v.Add(key, fmt.Sprintf("%v", rv.Float()))
+		e.v.Add(key, strconv.FormatFloat(rv.Float(), 'f', -1, 64))
 	case reflect.Map:
 		return e.encodeMap(key, rv)
 	case reflect.Array:
@@ -117,7 +121,8 @@ func (e *encoder) encodeMap(key string, rv reflect.Value) error {
 
 func (e *encoder) encodeArray(key string, rv reflect.Value) error {
 	for i := 0; i < rv.Len(); i++ {
-		if err := e.encodeByType(fmt.Sprintf("%s[%d]", key, i), rv.Index(i)); err != nil {
+		k := key + "[" + strconv.Itoa(i) + "]"
+		if err := e.encodeByType(k, rv.Index(i)); err != nil {
 			return err
 		}
 	}
@@ -160,5 +165,5 @@ func (e *encoder) makeMapKey(key, ch string) string {
 	if key == "" {
 		return ch
 	}
-	return fmt.Sprintf("%s[%s]", key, ch)
+	return key + "[" + ch + "]"
 }
