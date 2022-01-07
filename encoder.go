@@ -1,4 +1,4 @@
-package qstringer
+package qstring
 
 import (
 	"fmt"
