@@ -74,6 +74,8 @@ func (d *decoder) setTypeVlaue(rt reflect.Type, rv reflect.Value, uv urlValue, i
 		return d.setString(rv, uv, isPtr)
 	case reflect.Array:
 		return d.setArray(rv, uv, isPtr)
+	case reflect.Slice:
+		return d.setSlice(rv, uv, isPtr)
 	}
 
 	return &UnsupportedTypeError{rt}
@@ -326,9 +328,30 @@ func (d *decoder) setArray(rv reflect.Value, uv urlValue, isPtr bool) error {
 		return &UnsupportedTypeError{val.Type()}
 	}
 
-	// New returns a pointer
 	for i, v := range uv.values {
 		val.Index(i).Set(reflect.ValueOf(v))
 	}
+	return nil
+}
+
+func (d *decoder) setSlice(rv reflect.Value, uv urlValue, isPtr bool) error {
+	if uv.hasChild() {
+		// TODO: add nested slice support
+		return nil
+	}
+
+	val := rv
+	if rv.Type().Kind() == reflect.Ptr {
+		if !rv.Elem().IsValid() {
+			rv.Set(reflect.New(rv.Type().Elem()))
+		}
+		val = rv.Elem()
+	}
+
+	if !val.Type().AssignableTo(reflect.TypeOf(uv.values)) {
+		return &UnsupportedTypeError{val.Type()}
+	}
+
+	val.Set(reflect.AppendSlice(val, reflect.ValueOf(uv.values)))
 	return nil
 }

@@ -27,6 +27,8 @@ type ds struct {
 	JSONStr      string    `qstring:"json_str"`
 	Array        [3]string `qstring:"array"`
 	ArrayI       [3]int    `qstring:"arrayI"`
+	Slice        []string  `qstring:"slice"`
+	SliceI       []int     `qstring:"sliceI"`
 }
 
 type dsp struct {
@@ -46,6 +48,8 @@ type dsp struct {
 	JSONStr      *string    `qstring:"json_str"`
 	Array        *[3]string `qstring:"array"`
 	ArrayI       *[3]int    `qstring:"arrayI"`
+	Slice        *[]string  `qstring:"slice"`
+	SliceI       *[]int     `qstring:"sliceI"`
 }
 
 // type ds2 struct {
@@ -242,6 +246,11 @@ func TestDecode(t *testing.T) {
 		{name: "struct type - string array pointer", q: "array[0]=1&array[1]=a&array[2]=true", v: dspP(), expected: dsp{Array: &[3]string{"1", "a", "true"}}},
 		{name: "struct type - string array pointer - out of range", q: "array[0]=1&array[1]=a&array[2]=true&array[3]=b", v: dspP(), err: fmt.Errorf("index out of range [3] with [3]string")},
 		{name: "struct type - int array pointer", q: "arrayI[0]=1&arrayI[1]=a&arrayI[2]=true", v: dspP(), err: fmt.Errorf("[3]int is not supported")},
+
+		{name: "struct type - string slice", q: "slice[0]=1&slice[1]=a&slice[2]=true", v: dsP(), expected: ds{Slice: []string{"1", "a", "true"}}},
+		{name: "struct type - int slice", q: "sliceI[0]=1&sliceI[1]=a&sliceI[2]=true", v: dsP(), err: fmt.Errorf("[]int is not supported")},
+		{name: "struct type - string slice pointer", q: "slice[0]=1&slice[1]=a&slice[2]=true", v: dspP(), expected: dsp{Slice: &[]string{"1", "a", "true"}}},
+		{name: "struct type - int slice pointer", q: "sliceI[0]=1&sliceI[1]=a&sliceI[2]=true", v: dspP(), err: fmt.Errorf("[]int is not supported")},
 	}
 
 	for _, tc := range testCases {
