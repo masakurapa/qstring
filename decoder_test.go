@@ -11,37 +11,41 @@ import (
 )
 
 type ds struct {
-	FieldB       bool    `qstring:"field_b"`
-	FieldI       int     `qstring:"fieldI"`
-	FieldI8      int8    `qstring:"fieldI8"`
-	FieldI16     int16   `qstring:"fieldI16"`
-	FieldI32     int32   `qstring:"fieldI32"`
-	FieldI64     int64   `qstring:"fieldI64"`
-	FieldUI8     uint8   `qstring:"fieldUI8"`
-	FieldUI      uint    `qstring:"fieldUI"`
-	FieldUI16    uint16  `qstring:"fieldUI16"`
-	FieldUI32    uint32  `qstring:"fieldUI32"`
-	FieldUI64    uint64  `qstring:"fieldUI64"`
-	FieldFloat32 float32 `qstring:"fieldFloat32"`
-	FieldFloat64 float64 `qstring:"fieldFloat64"`
-	JSONStr      string  `qstring:"json_str"`
+	FieldB       bool      `qstring:"field_b"`
+	FieldI       int       `qstring:"fieldI"`
+	FieldI8      int8      `qstring:"fieldI8"`
+	FieldI16     int16     `qstring:"fieldI16"`
+	FieldI32     int32     `qstring:"fieldI32"`
+	FieldI64     int64     `qstring:"fieldI64"`
+	FieldUI8     uint8     `qstring:"fieldUI8"`
+	FieldUI      uint      `qstring:"fieldUI"`
+	FieldUI16    uint16    `qstring:"fieldUI16"`
+	FieldUI32    uint32    `qstring:"fieldUI32"`
+	FieldUI64    uint64    `qstring:"fieldUI64"`
+	FieldFloat32 float32   `qstring:"fieldFloat32"`
+	FieldFloat64 float64   `qstring:"fieldFloat64"`
+	JSONStr      string    `qstring:"json_str"`
+	Array        [3]string `qstring:"array"`
+	ArrayI       [3]int    `qstring:"arrayI"`
 }
 
 type dsp struct {
-	FieldB       *bool    `qstring:"field_b"`
-	FieldI       *int     `qstring:"fieldI"`
-	FieldI8      *int8    `qstring:"fieldI8"`
-	FieldI16     *int16   `qstring:"fieldI16"`
-	FieldI32     *int32   `qstring:"fieldI32"`
-	FieldI64     *int64   `qstring:"fieldI64"`
-	FieldUI8     *uint8   `qstring:"fieldUI8"`
-	FieldUI      *uint    `qstring:"fieldUI"`
-	FieldUI16    *uint16  `qstring:"fieldUI16"`
-	FieldUI32    *uint32  `qstring:"fieldUI32"`
-	FieldUI64    *uint64  `qstring:"fieldUI64"`
-	FieldFloat32 *float32 `qstring:"fieldFloat32"`
-	FieldFloat64 *float64 `qstring:"fieldFloat64"`
-	JSONStr      *string  `qstring:"json_str"`
+	FieldB       *bool      `qstring:"field_b"`
+	FieldI       *int       `qstring:"fieldI"`
+	FieldI8      *int8      `qstring:"fieldI8"`
+	FieldI16     *int16     `qstring:"fieldI16"`
+	FieldI32     *int32     `qstring:"fieldI32"`
+	FieldI64     *int64     `qstring:"fieldI64"`
+	FieldUI8     *uint8     `qstring:"fieldUI8"`
+	FieldUI      *uint      `qstring:"fieldUI"`
+	FieldUI16    *uint16    `qstring:"fieldUI16"`
+	FieldUI32    *uint32    `qstring:"fieldUI32"`
+	FieldUI64    *uint64    `qstring:"fieldUI64"`
+	FieldFloat32 *float32   `qstring:"fieldFloat32"`
+	FieldFloat64 *float64   `qstring:"fieldFloat64"`
+	JSONStr      *string    `qstring:"json_str"`
+	Array        *[3]string `qstring:"array"`
+	ArrayI       *[3]int    `qstring:"arrayI"`
 }
 
 // type ds2 struct {
@@ -231,6 +235,13 @@ func TestDecode(t *testing.T) {
 
 		{name: "struct type - string", q: "json_str=1", v: dsP(), expected: ds{JSONStr: "1"}},
 		{name: "struct type - string pointer", q: "json_str=1", v: dspP(), expected: dsp{JSONStr: stringP("1")}},
+
+		{name: "struct type - string array", q: "array[0]=1&array[1]=a&array[2]=true", v: dsP(), expected: ds{Array: [3]string{"1", "a", "true"}}},
+		{name: "struct type - string array - out of range", q: "array[0]=1&array[1]=a&array[2]=true&array[3]=b", v: dsP(), err: fmt.Errorf("index out of range [3] with [3]string")},
+		{name: "struct type - int array", q: "arrayI[0]=1&arrayI[1]=a&arrayI[2]=true", v: dsP(), err: fmt.Errorf("[3]int is not supported")},
+		{name: "struct type - string array pointer", q: "array[0]=1&array[1]=a&array[2]=true", v: dspP(), expected: dsp{Array: &[3]string{"1", "a", "true"}}},
+		{name: "struct type - string array pointer - out of range", q: "array[0]=1&array[1]=a&array[2]=true&array[3]=b", v: dspP(), err: fmt.Errorf("index out of range [3] with [3]string")},
+		{name: "struct type - int array pointer", q: "arrayI[0]=1&arrayI[1]=a&arrayI[2]=true", v: dspP(), err: fmt.Errorf("[3]int is not supported")},
 	}
 
 	for _, tc := range testCases {

@@ -5,6 +5,7 @@ import (
 	"strconv"
 )
 
+// UnsupportedTypeError is an error for unsupported types
 type UnsupportedTypeError struct {
 	rt reflect.Type
 }
@@ -20,6 +21,7 @@ func (e *UnsupportedTypeError) Error() string {
 	return t + " is not supported"
 }
 
+// InvalidEncodeError is an error for unencodable arguments
 type InvalidEncodeError struct {
 	rt reflect.Type
 }
@@ -32,6 +34,7 @@ func (e *InvalidEncodeError) Error() string {
 	return "nil " + e.rt.Kind().String() + " is not supported"
 }
 
+// InvalidEncodeError is an error for undecodable arguments
 type InvalidDecodeError struct {
 	rt reflect.Type
 }
@@ -46,6 +49,8 @@ func (e *InvalidDecodeError) Error() string {
 	return "nil " + e.rt.Kind().String() + " is not supported"
 }
 
+// ArrayIndexOutOfRangeDecodeError is an error
+// when the capacity of the array is exceeded during decoding
 type ArrayIndexOutOfRangeDecodeError struct {
 	rt  reflect.Type
 	len int

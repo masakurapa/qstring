@@ -31,48 +31,57 @@ func (d *decoder) decodeStruct(rv reflect.Value) error {
 		// 	continue
 		// }
 
+		var err error
 		frv := rv.FieldByName(f.Name)
 		if frv.Kind() == reflect.Ptr {
-			d.setTypeVlaue(frv.Type().Elem(), frv, val, true)
+			err = d.setTypeVlaue(frv.Type().Elem(), frv, val, true)
 		} else {
-			d.setTypeVlaue(frv.Type(), frv, val, false)
+			err = d.setTypeVlaue(frv.Type(), frv, val, false)
+		}
+
+		if err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
-func (d *decoder) setTypeVlaue(rt reflect.Type, rv reflect.Value, uv urlValue, isPtr bool) {
+func (d *decoder) setTypeVlaue(rt reflect.Type, rv reflect.Value, uv urlValue, isPtr bool) error {
 	switch rt.Kind() {
 	case reflect.Bool:
-		d.setBool(rv, uv, isPtr)
+		return d.setBool(rv, uv, isPtr)
 	case reflect.Int:
-		d.setInt(rv, uv, isPtr)
+		return d.setInt(rv, uv, isPtr)
 	case reflect.Int8:
-		d.setInt8(rv, uv, isPtr)
+		return d.setInt8(rv, uv, isPtr)
 	case reflect.Int16:
-		d.setInt16(rv, uv, isPtr)
+		return d.setInt16(rv, uv, isPtr)
 	case reflect.Int32:
-		d.setInt32(rv, uv, isPtr)
+		return d.setInt32(rv, uv, isPtr)
 	case reflect.Int64:
-		d.setInt64(rv, uv, isPtr)
+		return d.setInt64(rv, uv, isPtr)
 	case reflect.Uint:
-		d.setUint(rv, uv, isPtr)
+		return d.setUint(rv, uv, isPtr)
 	case reflect.Uint8:
-		d.setUint8(rv, uv, isPtr)
+		return d.setUint8(rv, uv, isPtr)
 	case reflect.Uint16:
-		d.setUint16(rv, uv, isPtr)
+		return d.setUint16(rv, uv, isPtr)
 	case reflect.Uint32:
-		d.setUint32(rv, uv, isPtr)
+		return d.setUint32(rv, uv, isPtr)
 	case reflect.Uint64:
-		d.setUint64(rv, uv, isPtr)
+		return d.setUint64(rv, uv, isPtr)
 	case reflect.String:
-		d.setString(rv, uv, isPtr)
+		return d.setString(rv, uv, isPtr)
+	case reflect.Array:
+		return d.setArray(rv, uv, isPtr)
 	}
+
+	return &UnsupportedTypeError{rt}
 }
 
-func (d *decoder) setBool(rv reflect.Value, uv urlValue, isPtr bool) {
+func (d *decoder) setBool(rv reflect.Value, uv urlValue, isPtr bool) error {
 	if !uv.hasSingleValue() {
-		return
+		return nil // TODO: return error
 	}
 
 	val := false
@@ -82,7 +91,7 @@ func (d *decoder) setBool(rv reflect.Value, uv urlValue, isPtr bool) {
 	case "1", "true":
 		val = true
 	default:
-		return
+		return nil // TODO: return error
 	}
 
 	if isPtr {
@@ -90,16 +99,17 @@ func (d *decoder) setBool(rv reflect.Value, uv urlValue, isPtr bool) {
 	} else {
 		rv.Set(reflect.ValueOf(val))
 	}
+	return nil
 }
 
-func (d *decoder) setInt(rv reflect.Value, uv urlValue, isPtr bool) {
+func (d *decoder) setInt(rv reflect.Value, uv urlValue, isPtr bool) error {
 	if !uv.hasSingleValue() {
-		return
+		return nil // TODO: return error
 	}
 
 	i, err := strconv.ParseInt(uv.values[0], 10, 64)
 	if err != nil {
-		return
+		return nil // TODO: return error
 	}
 
 	val := int(i)
@@ -108,16 +118,17 @@ func (d *decoder) setInt(rv reflect.Value, uv urlValue, isPtr bool) {
 	} else {
 		rv.Set(reflect.ValueOf(val))
 	}
+	return nil
 }
 
-func (d *decoder) setInt8(rv reflect.Value, uv urlValue, isPtr bool) {
+func (d *decoder) setInt8(rv reflect.Value, uv urlValue, isPtr bool) error {
 	if !uv.hasSingleValue() {
-		return
+		return nil // TODO: return error
 	}
 
 	i, err := strconv.ParseInt(uv.values[0], 10, 8)
 	if err != nil {
-		return
+		return nil // TODO: return error
 	}
 
 	val := int8(i)
@@ -126,16 +137,17 @@ func (d *decoder) setInt8(rv reflect.Value, uv urlValue, isPtr bool) {
 	} else {
 		rv.Set(reflect.ValueOf(val))
 	}
+	return nil
 }
 
-func (d *decoder) setInt16(rv reflect.Value, uv urlValue, isPtr bool) {
+func (d *decoder) setInt16(rv reflect.Value, uv urlValue, isPtr bool) error {
 	if !uv.hasSingleValue() {
-		return
+		return nil // TODO: return error
 	}
 
 	i, err := strconv.ParseInt(uv.values[0], 10, 16)
 	if err != nil {
-		return
+		return nil // TODO: return error
 	}
 
 	val := int16(i)
@@ -144,16 +156,17 @@ func (d *decoder) setInt16(rv reflect.Value, uv urlValue, isPtr bool) {
 	} else {
 		rv.Set(reflect.ValueOf(val))
 	}
+	return nil
 }
 
-func (d *decoder) setInt32(rv reflect.Value, uv urlValue, isPtr bool) {
+func (d *decoder) setInt32(rv reflect.Value, uv urlValue, isPtr bool) error {
 	if !uv.hasSingleValue() {
-		return
+		return nil // TODO: return error
 	}
 
 	i, err := strconv.ParseInt(uv.values[0], 10, 32)
 	if err != nil {
-		return
+		return nil // TODO: return error
 	}
 
 	val := int32(i)
@@ -162,16 +175,17 @@ func (d *decoder) setInt32(rv reflect.Value, uv urlValue, isPtr bool) {
 	} else {
 		rv.Set(reflect.ValueOf(val))
 	}
+	return nil
 }
 
-func (d *decoder) setInt64(rv reflect.Value, uv urlValue, isPtr bool) {
+func (d *decoder) setInt64(rv reflect.Value, uv urlValue, isPtr bool) error {
 	if !uv.hasSingleValue() {
-		return
+		return nil // TODO: return error
 	}
 
 	val, err := strconv.ParseInt(uv.values[0], 10, 64)
 	if err != nil {
-		return
+		return nil // TODO: return error
 	}
 
 	if isPtr {
@@ -179,16 +193,17 @@ func (d *decoder) setInt64(rv reflect.Value, uv urlValue, isPtr bool) {
 	} else {
 		rv.Set(reflect.ValueOf(val))
 	}
+	return nil
 }
 
-func (d *decoder) setUint(rv reflect.Value, uv urlValue, isPtr bool) {
+func (d *decoder) setUint(rv reflect.Value, uv urlValue, isPtr bool) error {
 	if !uv.hasSingleValue() {
-		return
+		return nil // TODO: return error
 	}
 
 	i, err := strconv.ParseUint(uv.values[0], 10, 64)
 	if err != nil {
-		return
+		return nil // TODO: return error
 	}
 
 	val := uint(i)
@@ -197,16 +212,17 @@ func (d *decoder) setUint(rv reflect.Value, uv urlValue, isPtr bool) {
 	} else {
 		rv.Set(reflect.ValueOf(val))
 	}
+	return nil
 }
 
-func (d *decoder) setUint8(rv reflect.Value, uv urlValue, isPtr bool) {
+func (d *decoder) setUint8(rv reflect.Value, uv urlValue, isPtr bool) error {
 	if !uv.hasSingleValue() {
-		return
+		return nil // TODO: return error
 	}
 
 	i, err := strconv.ParseUint(uv.values[0], 10, 8)
 	if err != nil {
-		return
+		return nil // TODO: return error
 	}
 
 	val := uint8(i)
@@ -215,16 +231,17 @@ func (d *decoder) setUint8(rv reflect.Value, uv urlValue, isPtr bool) {
 	} else {
 		rv.Set(reflect.ValueOf(val))
 	}
+	return nil
 }
 
-func (d *decoder) setUint16(rv reflect.Value, uv urlValue, isPtr bool) {
+func (d *decoder) setUint16(rv reflect.Value, uv urlValue, isPtr bool) error {
 	if !uv.hasSingleValue() {
-		return
+		return nil // TODO: return error
 	}
 
 	i, err := strconv.ParseUint(uv.values[0], 10, 16)
 	if err != nil {
-		return
+		return nil // TODO: return error
 	}
 
 	val := uint16(i)
@@ -233,16 +250,17 @@ func (d *decoder) setUint16(rv reflect.Value, uv urlValue, isPtr bool) {
 	} else {
 		rv.Set(reflect.ValueOf(val))
 	}
+	return nil
 }
 
-func (d *decoder) setUint32(rv reflect.Value, uv urlValue, isPtr bool) {
+func (d *decoder) setUint32(rv reflect.Value, uv urlValue, isPtr bool) error {
 	if !uv.hasSingleValue() {
-		return
+		return nil // TODO: return error
 	}
 
 	i, err := strconv.ParseUint(uv.values[0], 10, 32)
 	if err != nil {
-		return
+		return nil // TODO: return error
 	}
 
 	val := uint32(i)
@@ -251,16 +269,17 @@ func (d *decoder) setUint32(rv reflect.Value, uv urlValue, isPtr bool) {
 	} else {
 		rv.Set(reflect.ValueOf(val))
 	}
+	return nil
 }
 
-func (d *decoder) setUint64(rv reflect.Value, uv urlValue, isPtr bool) {
+func (d *decoder) setUint64(rv reflect.Value, uv urlValue, isPtr bool) error {
 	if !uv.hasSingleValue() {
-		return
+		return nil // TODO: return error
 	}
 
 	i, err := strconv.ParseUint(uv.values[0], 10, 64)
 	if err != nil {
-		return
+		return nil // TODO: return error
 	}
 
 	val := uint64(i)
@@ -269,11 +288,12 @@ func (d *decoder) setUint64(rv reflect.Value, uv urlValue, isPtr bool) {
 	} else {
 		rv.Set(reflect.ValueOf(val))
 	}
+	return nil
 }
 
-func (d *decoder) setString(rv reflect.Value, uv urlValue, isPtr bool) {
+func (d *decoder) setString(rv reflect.Value, uv urlValue, isPtr bool) error {
 	if !uv.hasSingleValue() {
-		return
+		return nil // TODO: return error
 	}
 
 	val := uv.values[0]
@@ -282,4 +302,33 @@ func (d *decoder) setString(rv reflect.Value, uv urlValue, isPtr bool) {
 	} else {
 		rv.Set(reflect.ValueOf(val))
 	}
+	return nil
+}
+
+func (d *decoder) setArray(rv reflect.Value, uv urlValue, isPtr bool) error {
+	if uv.hasChild() {
+		return nil
+	}
+
+	val := rv
+	if rv.Type().Kind() == reflect.Ptr {
+		if !rv.Elem().IsValid() {
+			rv.Set(reflect.New(rv.Type().Elem()))
+		}
+		val = rv.Elem()
+	}
+
+	if val.Len() < len(uv.values) {
+		return &ArrayIndexOutOfRangeDecodeError{val.Type(), val.Len()}
+	}
+
+	if val.Index(0).Type().Kind() != reflect.String {
+		return &UnsupportedTypeError{val.Type()}
+	}
+
+	// New returns a pointer
+	for i, v := range uv.values {
+		val.Index(i).Set(reflect.ValueOf(v))
+	}
+	return nil
 }
