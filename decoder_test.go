@@ -11,45 +11,49 @@ import (
 )
 
 type ds struct {
-	FieldB       bool      `qstring:"field_b"`
-	FieldI       int       `qstring:"fieldI"`
-	FieldI8      int8      `qstring:"fieldI8"`
-	FieldI16     int16     `qstring:"fieldI16"`
-	FieldI32     int32     `qstring:"fieldI32"`
-	FieldI64     int64     `qstring:"fieldI64"`
-	FieldUI8     uint8     `qstring:"fieldUI8"`
-	FieldUI      uint      `qstring:"fieldUI"`
-	FieldUI16    uint16    `qstring:"fieldUI16"`
-	FieldUI32    uint32    `qstring:"fieldUI32"`
-	FieldUI64    uint64    `qstring:"fieldUI64"`
-	FieldFloat32 float32   `qstring:"fieldFloat32"`
-	FieldFloat64 float64   `qstring:"fieldFloat64"`
-	JSONStr      string    `qstring:"json_str"`
-	Array        [3]string `qstring:"array"`
-	ArrayI       [3]int    `qstring:"arrayI"`
-	Slice        []string  `qstring:"slice"`
-	SliceI       []int     `qstring:"sliceI"`
+	FieldB       bool         `qstring:"field_b"`
+	FieldI       int          `qstring:"fieldI"`
+	FieldI8      int8         `qstring:"fieldI8"`
+	FieldI16     int16        `qstring:"fieldI16"`
+	FieldI32     int32        `qstring:"fieldI32"`
+	FieldI64     int64        `qstring:"fieldI64"`
+	FieldUI8     uint8        `qstring:"fieldUI8"`
+	FieldUI      uint         `qstring:"fieldUI"`
+	FieldUI16    uint16       `qstring:"fieldUI16"`
+	FieldUI32    uint32       `qstring:"fieldUI32"`
+	FieldUI64    uint64       `qstring:"fieldUI64"`
+	FieldFloat32 float32      `qstring:"fieldFloat32"`
+	FieldFloat64 float64      `qstring:"fieldFloat64"`
+	JSONStr      string       `qstring:"json_str"`
+	Array        [3]string    `qstring:"array"`
+	ArrayNest    [3][3]string `qstring:"arrayNest"`
+	ArrayI       [3]int       `qstring:"arrayI"`
+	Slice        []string     `qstring:"slice"`
+	SliceNest    [][]string   `qstring:"sliceNest"`
+	SliceI       []int        `qstring:"sliceI"`
 }
 
 type dsp struct {
-	FieldB       *bool      `qstring:"field_b"`
-	FieldI       *int       `qstring:"fieldI"`
-	FieldI8      *int8      `qstring:"fieldI8"`
-	FieldI16     *int16     `qstring:"fieldI16"`
-	FieldI32     *int32     `qstring:"fieldI32"`
-	FieldI64     *int64     `qstring:"fieldI64"`
-	FieldUI8     *uint8     `qstring:"fieldUI8"`
-	FieldUI      *uint      `qstring:"fieldUI"`
-	FieldUI16    *uint16    `qstring:"fieldUI16"`
-	FieldUI32    *uint32    `qstring:"fieldUI32"`
-	FieldUI64    *uint64    `qstring:"fieldUI64"`
-	FieldFloat32 *float32   `qstring:"fieldFloat32"`
-	FieldFloat64 *float64   `qstring:"fieldFloat64"`
-	JSONStr      *string    `qstring:"json_str"`
-	Array        *[3]string `qstring:"array"`
-	ArrayI       *[3]int    `qstring:"arrayI"`
-	Slice        *[]string  `qstring:"slice"`
-	SliceI       *[]int     `qstring:"sliceI"`
+	FieldB       *bool          `qstring:"field_b"`
+	FieldI       *int           `qstring:"fieldI"`
+	FieldI8      *int8          `qstring:"fieldI8"`
+	FieldI16     *int16         `qstring:"fieldI16"`
+	FieldI32     *int32         `qstring:"fieldI32"`
+	FieldI64     *int64         `qstring:"fieldI64"`
+	FieldUI8     *uint8         `qstring:"fieldUI8"`
+	FieldUI      *uint          `qstring:"fieldUI"`
+	FieldUI16    *uint16        `qstring:"fieldUI16"`
+	FieldUI32    *uint32        `qstring:"fieldUI32"`
+	FieldUI64    *uint64        `qstring:"fieldUI64"`
+	FieldFloat32 *float32       `qstring:"fieldFloat32"`
+	FieldFloat64 *float64       `qstring:"fieldFloat64"`
+	JSONStr      *string        `qstring:"json_str"`
+	Array        *[3]string     `qstring:"array"`
+	ArrayNest    *[3]*[3]string `qstring:"arrayNest"`
+	ArrayI       *[3]int        `qstring:"arrayI"`
+	Slice        *[]string      `qstring:"slice"`
+	SliceNest    *[]*[]string   `qstring:"sliceNest"`
+	SliceI       *[]int         `qstring:"sliceI"`
 }
 
 // type ds2 struct {
@@ -248,6 +252,8 @@ func TestDecode(t *testing.T) {
 		{name: "struct type - int array pointer", q: "arrayI[0]=1&arrayI[1]=a&arrayI[2]=true", v: dspP(), err: fmt.Errorf("[3]int is not supported")},
 
 		{name: "struct type - string slice", q: "slice[0]=1&slice[1]=a&slice[2]=true", v: dsP(), expected: ds{Slice: []string{"1", "a", "true"}}},
+		{name: "struct type - nested string slice", q: "sliceNest[0][0]=1&sliceNest[0][1]=a&sliceNest[1][0]=true", v: dsP(), expected: ds{SliceNest: [][]string{{"1", "a"}, {"true"}}}},
+
 		{name: "struct type - int slice", q: "sliceI[0]=1&sliceI[1]=a&sliceI[2]=true", v: dsP(), err: fmt.Errorf("[]int is not supported")},
 		{name: "struct type - string slice pointer", q: "slice[0]=1&slice[1]=a&slice[2]=true", v: dspP(), expected: dsp{Slice: &[]string{"1", "a", "true"}}},
 		{name: "struct type - int slice pointer", q: "sliceI[0]=1&sliceI[1]=a&sliceI[2]=true", v: dspP(), err: fmt.Errorf("[]int is not supported")},

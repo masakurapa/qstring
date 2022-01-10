@@ -1,6 +1,7 @@
 package qstring
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 )
@@ -77,6 +78,8 @@ func (d *decoder) setTypeVlaue(rt reflect.Type, rv reflect.Value, uv urlValue, i
 	case reflect.Slice:
 		return d.setSlice(rv, uv, isPtr)
 	}
+
+	fmt.Println(rt.String())
 
 	return &UnsupportedTypeError{rt}
 }
@@ -309,11 +312,12 @@ func (d *decoder) setString(rv reflect.Value, uv urlValue, isPtr bool) error {
 
 func (d *decoder) setArray(rv reflect.Value, uv urlValue, isPtr bool) error {
 	if uv.hasChild() {
+		// TODO: add nested array support
 		return nil
 	}
 
 	val := rv
-	if rv.Type().Kind() == reflect.Ptr {
+	if isPtr {
 		if !rv.Elem().IsValid() {
 			rv.Set(reflect.New(rv.Type().Elem()))
 		}
@@ -335,17 +339,31 @@ func (d *decoder) setArray(rv reflect.Value, uv urlValue, isPtr bool) error {
 }
 
 func (d *decoder) setSlice(rv reflect.Value, uv urlValue, isPtr bool) error {
-	if uv.hasChild() {
-		// TODO: add nested slice support
-		return nil
-	}
-
 	val := rv
-	if rv.Type().Kind() == reflect.Ptr {
+	if isPtr {
 		if !rv.Elem().IsValid() {
 			rv.Set(reflect.New(rv.Type().Elem()))
 		}
 		val = rv.Elem()
+	}
+
+	if uv.hasChild() {
+		crt := val.Type().Elem()
+		cPtr := crt.Kind() == reflect.Ptr
+		if cPtr {
+			crt = crt.Elem()
+		}
+
+		for _, cuv := range uv.child {
+			crv := reflect.New(crt).Elem()
+			err := d.setTypeVlaue(crt, crv, cuv, cPtr)
+			if err != nil {
+				return err
+			}
+			val.Set(reflect.Append(val, crv))
+		}
+
+		return nil
 	}
 
 	if !val.Type().AssignableTo(reflect.TypeOf(uv.values)) {
