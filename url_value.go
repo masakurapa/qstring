@@ -1,6 +1,9 @@
 package qstring
 
-import "sort"
+import (
+	"sort"
+	"strings"
+)
 
 type urlValueMap map[string]urlValue
 
@@ -37,4 +40,14 @@ func (uv urlValue) hasChild() bool {
 
 func (uv urlValue) hasSingleValue() bool {
 	return len(uv.values) == 1 && !uv.hasChild()
+}
+
+func (uv urlValue) String() string {
+	if len(uv.values) == 0 {
+		return ""
+	}
+	if len(uv.values) == 1 {
+		return uv.values[0]
+	}
+	return `[]string{"` + strings.Join(uv.values, `","`) + `"}`
 }

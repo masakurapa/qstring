@@ -59,3 +59,14 @@ type ArrayIndexOutOfRangeDecodeError struct {
 func (e *ArrayIndexOutOfRangeDecodeError) Error() string {
 	return "index out of range [" + strconv.Itoa(e.len) + "] with " + e.rt.String()
 }
+
+// NoAssignableValueError is an error
+// if the value cannot be assigned to a structure
+type NoAssignableValueError struct {
+	rt    reflect.Type
+	value string
+}
+
+func (e *NoAssignableValueError) Error() string {
+	return `"` + e.value + `" can not be assign to ` + e.rt.String()
+}
