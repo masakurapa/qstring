@@ -354,7 +354,7 @@ func (d *decoder) setSlice(rv reflect.Value, uv urlValue, isPtr bool) error {
 			crt = crt.Elem()
 		}
 
-		for _, cuv := range uv.child {
+		for _, cuv := range uv.child.sortedChild() {
 			crv := reflect.New(crt).Elem()
 			err := d.setTypeVlaue(crt, crv, cuv, cPtr)
 			if err != nil {
