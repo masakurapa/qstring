@@ -311,17 +311,35 @@ func (d *decoder) setString(rv reflect.Value, uv urlValue, isPtr bool) error {
 }
 
 func (d *decoder) setArray(rv reflect.Value, uv urlValue, isPtr bool) error {
-	if uv.hasChild() {
-		// TODO: add nested array support
-		return nil
-	}
-
 	val := rv
 	if isPtr {
 		if !rv.Elem().IsValid() {
 			rv.Set(reflect.New(rv.Type().Elem()))
 		}
 		val = rv.Elem()
+	}
+
+	if uv.hasChild() {
+		crt := val.Type().Elem()
+		cPtr := crt.Kind() == reflect.Ptr
+		if cPtr {
+			crt = crt.Elem()
+		}
+
+		if val.Len() < len(uv.child) {
+			return &ArrayIndexOutOfRangeDecodeError{val.Type(), val.Len()}
+		}
+
+		for i, cuv := range uv.child.sortedChild() {
+			crv := reflect.New(crt).Elem()
+			err := d.setTypeVlaue(crt, crv, cuv, cPtr)
+			if err != nil {
+				return err
+			}
+			val.Index(i).Set(crv)
+		}
+
+		return nil
 	}
 
 	if val.Len() < len(uv.values) {

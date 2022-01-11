@@ -25,7 +25,6 @@ func TestDecode(t *testing.T) {
 			{name: "nil", q: q, v: nil, err: fmt.Errorf("nil is not supported")},
 			{name: "not pointer", q: q, v: func() string { return "" }(), err: fmt.Errorf("non-pointer is not supported")},
 
-			// unsupported type
 			{name: "bool type", q: q, v: boolP(false), err: fmt.Errorf("bool is not supported")},
 			{name: "int type", q: q, v: intP(0), err: fmt.Errorf("int is not supported")},
 			{name: "int64 type", q: q, v: int64P(0), err: fmt.Errorf("int64 is not supported")},
@@ -39,8 +38,6 @@ func TestDecode(t *testing.T) {
 			{name: "uint8 type", q: q, v: uint8P(0), err: fmt.Errorf("uint8 is not supported")},
 			{name: "float64 type", q: q, v: float64P(0), err: fmt.Errorf("float64 is not supported")},
 			{name: "float32 type", q: q, v: float32P(0), err: fmt.Errorf("float32 is not supported")},
-			// {name: "array type", q: q, v: func() *bool { var a bool; return &a }(), err: fmt.Errorf("array is not supported")},
-			// {name: "slice type", q: q, v: func() *bool { var a bool; return &a }(), err: fmt.Errorf("slice is not supported")},
 			{name: "uintptr type", q: q, v: func() *uintptr { var a uintptr; return &a }(), err: fmt.Errorf("uintptr is not supported")},
 			{name: "complex64 type", q: q, v: func() *complex64 { var a complex64; return &a }(), err: fmt.Errorf("complex64 is not supported")},
 			{name: "complex128 type", q: q, v: func() *complex128 { var a complex128; return &a }(), err: fmt.Errorf("complex128 is not supported")},
@@ -412,7 +409,8 @@ func TestDecode(t *testing.T) {
 				FieldI [3]int    `qstring:"field_i"`
 			}
 			runDecodeTest(t, []decodeCase{
-				{name: "string", q: "field[0]=1&field[1]=a&field[2]=true", v: &s{}, expected: s{Field: [3]string{"1", "a", "true"}}},
+				{name: "no index", q: "field[]=1&field[]=a&field[]=true", v: &s{}, expected: s{Field: [3]string{"1", "a", "true"}}},
+				{name: "has index", q: "field[0]=1&field[1]=a&field[2]=true", v: &s{}, expected: s{Field: [3]string{"1", "a", "true"}}},
 				{name: "out of range", q: "field[0]=1&field[1]=a&field[2]=true&field[3]=b", v: &s{}, err: fmt.Errorf("index out of range [3] with [3]string")},
 				{name: "int", q: "field_i[0]=1&field_i[1]=a&field_i[2]=true", v: &s{}, err: fmt.Errorf("[3]int is not supported")},
 				{name: "no field", q: "no=1", v: &s{}, expected: s{Field: [3]string{"", "", ""}}},
@@ -424,9 +422,41 @@ func TestDecode(t *testing.T) {
 				FieldI *[3]int    `qstring:"field_i"`
 			}
 			runDecodeTest(t, []decodeCase{
-				{name: "string", q: "field[0]=1&field[1]=a&field[2]=true", v: &s{}, expected: s{Field: &[3]string{"1", "a", "true"}}},
+				{name: "no index", q: "field[]=1&field[]=a&field[]=true", v: &s{}, expected: s{Field: &[3]string{"1", "a", "true"}}},
+				{name: "has index", q: "field[0]=1&field[1]=a&field[2]=true", v: &s{}, expected: s{Field: &[3]string{"1", "a", "true"}}},
 				{name: "out of range", q: "field[0]=1&field[1]=a&field[2]=true&field[3]=b", v: &s{}, err: fmt.Errorf("index out of range [3] with [3]string")},
 				{name: "int", q: "field_i[0]=1&field_i[1]=a&field_i[2]=true", v: &s{}, err: fmt.Errorf("[3]int is not supported")},
+				{name: "no field", q: "no=1", v: &s{}, expected: s{Field: nil}},
+			})
+		})
+
+		t.Run("nested array", func(t *testing.T) {
+			type s struct {
+				Field  [3][2]string `qstring:"field"`
+				FieldI [3][2]int    `qstring:"field_i"`
+			}
+			runDecodeTest(t, []decodeCase{
+				{name: "no index", q: "field[][]=1&field[][]=a", v: &s{}, expected: s{Field: [3][2]string{{"1", "a"}}}},
+				{name: "string", q: "field[0][0]=1&field[0][1]=a&field[1][0]=true", v: &s{}, expected: s{Field: [3][2]string{{"1", "a"}, {"true", ""}, {"", ""}}}},
+				{name: "no index and out of range", q: "field[][]=1&field[][]=a&field[][]=true", v: &s{}, err: fmt.Errorf("index out of range [2] with [2]string")},
+				{name: "has index and out of range", q: "field[0][0]=1&field[1][0]=a&field[2][0]=true&field[3][0]=b", v: &s{}, err: fmt.Errorf("index out of range [3] with [3][2]string")},
+				{name: "child out of range", q: "field[0][0]=1&field[0][1]=a&field[0][2]=true", v: &s{}, err: fmt.Errorf("index out of range [2] with [2]string")},
+				{name: "int", q: "field_i[0]=1&field_i[1]=a&field_i[2]=true", v: &s{}, err: fmt.Errorf("[3][2]int is not supported")},
+				{name: "no field", q: "no=1", v: &s{}, expected: s{Field: [3][2]string{{"", ""}, {"", ""}, {"", ""}}}},
+			})
+		})
+		t.Run("nested array pointer", func(t *testing.T) {
+			type s struct {
+				Field  *[3][2]string `qstring:"field"`
+				FieldI *[3][2]int    `qstring:"field_i"`
+			}
+			runDecodeTest(t, []decodeCase{
+				{name: "no index", q: "field[][]=1&field[][]=a", v: &s{}, expected: s{Field: &[3][2]string{{"1", "a"}}}},
+				{name: "string", q: "field[0][0]=1&field[0][1]=a&field[1][0]=true", v: &s{}, expected: s{Field: &[3][2]string{{"1", "a"}, {"true", ""}, {"", ""}}}},
+				{name: "no index and out of range", q: "field[][]=1&field[][]=a&field[][]=true", v: &s{}, err: fmt.Errorf("index out of range [2] with [2]string")},
+				{name: "has index and out of range", q: "field[0][0]=1&field[1][0]=a&field[2][0]=true&field[3][0]=b", v: &s{}, err: fmt.Errorf("index out of range [3] with [3][2]string")},
+				{name: "child out of range", q: "field[0][0]=1&field[0][1]=a&field[0][2]=true", v: &s{}, err: fmt.Errorf("index out of range [2] with [2]string")},
+				{name: "int", q: "field_i[0]=1&field_i[1]=a&field_i[2]=true", v: &s{}, err: fmt.Errorf("[3][2]int is not supported")},
 				{name: "no field", q: "no=1", v: &s{}, expected: s{Field: nil}},
 			})
 		})
@@ -437,7 +467,8 @@ func TestDecode(t *testing.T) {
 				FieldI []int    `qstring:"field_i"`
 			}
 			runDecodeTest(t, []decodeCase{
-				{name: "string", q: "field[0]=1&field[1]=a&field[2]=true", v: &s{}, expected: s{Field: []string{"1", "a", "true"}}},
+				{name: "no index", q: "field[]=1&field[]=a&field[]=true", v: &s{}, expected: s{Field: []string{"1", "a", "true"}}},
+				{name: "has index", q: "field[0]=1&field[1]=a&field[2]=true", v: &s{}, expected: s{Field: []string{"1", "a", "true"}}},
 				{name: "int", q: "field_i[0]=1&field_i[1]=a&field_i[2]=true", v: &s{}, err: fmt.Errorf("[]int is not supported")},
 				{name: "no field", q: "no=1", v: &s{}, expected: s{Field: nil}},
 			})
@@ -448,7 +479,8 @@ func TestDecode(t *testing.T) {
 				FieldI []int     `qstring:"field_i"`
 			}
 			runDecodeTest(t, []decodeCase{
-				{name: "string", q: "field[0]=1&field[1]=a&field[2]=true", v: &s{}, expected: s{Field: &[]string{"1", "a", "true"}}},
+				{name: "no index", q: "field[]=1&field[]=a&field[]=true", v: &s{}, expected: s{Field: &[]string{"1", "a", "true"}}},
+				{name: "has index", q: "field[0]=1&field[1]=a&field[2]=true", v: &s{}, expected: s{Field: &[]string{"1", "a", "true"}}},
 				{name: "int", q: "field_i[0]=1&field_i[1]=a&field_i[2]=true", v: &s{}, err: fmt.Errorf("[]int is not supported")},
 				{name: "no field", q: "no=1", v: &s{}, expected: s{Field: nil}},
 			})
@@ -460,7 +492,8 @@ func TestDecode(t *testing.T) {
 				FieldI [][]int    `qstring:"field_i"`
 			}
 			runDecodeTest(t, []decodeCase{
-				{name: "string", q: "field[0][0]=1&field[0][1]=a&field[1][0]=true", v: &s{}, expected: s{Field: [][]string{{"1", "a"}, {"true"}}}},
+				{name: "no index", q: "field[][]=1&field[][]=a&field[][]=true", v: &s{}, expected: s{Field: [][]string{{"1", "a", "true"}}}},
+				{name: "has index", q: "field[0][0]=1&field[0][1]=a&field[1][0]=true", v: &s{}, expected: s{Field: [][]string{{"1", "a"}, {"true"}}}},
 				{name: "int", q: "field_i[0]=1&field_i[1]=a&field_i[2]=true", v: &s{}, err: fmt.Errorf("[][]int is not supported")},
 				{name: "no field", q: "no=1", v: &s{}, expected: s{Field: nil}},
 			})
@@ -471,7 +504,8 @@ func TestDecode(t *testing.T) {
 				FieldI *[][]int    `qstring:"field_i"`
 			}
 			runDecodeTest(t, []decodeCase{
-				{name: "string", q: "field[0][0]=1&field[0][1]=a&field[1][0]=true", v: &s{}, expected: s{Field: &[][]string{{"1", "a"}, {"true"}}}},
+				{name: "no index", q: "field[][]=1&field[][]=a&field[][]=true", v: &s{}, expected: s{Field: &[][]string{{"1", "a", "true"}}}},
+				{name: "has index", q: "field[0][0]=1&field[0][1]=a&field[1][0]=true", v: &s{}, expected: s{Field: &[][]string{{"1", "a"}, {"true"}}}},
 				{name: "int", q: "field_i[0]=1&field_i[1]=a&field_i[2]=true", v: &s{}, err: fmt.Errorf("[][]int is not supported")},
 				{name: "no field", q: "no=1", v: &s{}, expected: s{Field: nil}},
 			})
