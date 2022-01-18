@@ -83,10 +83,6 @@ func (d *decoder) setStruct(rv reflect.Value, uvm urlValueMap) error {
 			continue
 		}
 
-		// if opt.omitempty && isEmptyValue(frv) {
-		// 	continue
-		// }
-
 		var err error
 		frv := rv.FieldByName(f.Name)
 		if frv.Kind() == reflect.Ptr {
