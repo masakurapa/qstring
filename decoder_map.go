@@ -15,12 +15,21 @@ func (d *decoder) decodeMap(rv reflect.Value) error {
 	if err != nil {
 		return err
 	}
+	return d.setMap(rv, valueMap)
+}
 
+func (d *decoder) setMap(rv reflect.Value, uvm urlValueMap) error {
+	if rv.Kind() == reflect.Ptr {
+		if rv.IsNil() {
+			rv.Set(reflect.New(rv.Type().Elem()))
+		}
+		rv = rv.Elem()
+	}
 	if rv.IsNil() {
 		rv.Set(reflect.MakeMap(rv.Type()))
 	}
 
-	for _, uv := range valueMap {
+	for _, uv := range uvm {
 		if uv.isString && len(uv.values) == 1 {
 			rv.SetMapIndex(reflect.ValueOf(uv.key), reflect.ValueOf(uv.values[0]))
 			continue
@@ -41,7 +50,6 @@ func (d *decoder) decodeMap(rv reflect.Value) error {
 		}
 		rv.SetMapIndex(reflect.ValueOf(uv.key), reflect.ValueOf(val))
 	}
-
 	return nil
 }
 

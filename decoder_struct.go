@@ -46,6 +46,11 @@ func (d *decoder) setTypeVlaue(rt reflect.Type, rv reflect.Value, uv urlValue, i
 		return d.setArray(rv, uv, isPtr)
 	case reflect.Slice:
 		return d.setSlice(rv, uv, isPtr)
+	case reflect.Map:
+		if !uv.hasChild() {
+			return &NoAssignableValueError{rt, uv.String()}
+		}
+		return d.setMap(rv, uv.child)
 	}
 
 	return &UnsupportedTypeError{rt}
