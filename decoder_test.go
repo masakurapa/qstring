@@ -510,6 +510,40 @@ func TestDecode(t *testing.T) {
 				{name: "no field", q: "no=1", v: &s{}, expected: s{Field: nil}},
 			})
 		})
+
+		t.Run("nested struct", func(t *testing.T) {
+			type c struct {
+				Field  string `qstring:"child_field"`
+				FieldI int    `qstring:"child_field_i"`
+			}
+			type s struct {
+				Field c `qstring:"field"`
+			}
+
+			runDecodeTest(t, []decodeCase{
+				{name: "has child field", q: "field[child_field]=a&field[child_field_i]=1", v: &s{}, expected: s{Field: c{Field: "a", FieldI: 1}}},
+				{name: "no child field", q: "field[no]=1", v: &s{}, expected: s{Field: c{Field: "", FieldI: 0}}},
+				{name: "not assign value", q: "field[child_field]=a&field[child_field_i]=a", v: &s{}, err: fmt.Errorf(`"a" can not be assign to int`)},
+				{name: "no field", q: "no=1", v: &s{}, expected: s{Field: c{Field: "", FieldI: 0}}},
+			})
+		})
+		t.Run("nested struct pointer", func(t *testing.T) {
+			type c struct {
+				Field  *string `qstring:"child_field"`
+				FieldI *int    `qstring:"child_field_i"`
+			}
+			type s struct {
+				Field *c `qstring:"field"`
+			}
+
+			runDecodeTest(t, []decodeCase{
+				{name: "has child field and nil child", q: "field[child_field]=a&field[child_field_i]=1", v: &s{}, expected: s{Field: &c{Field: stringP("a"), FieldI: intP(1)}}},
+				{name: "has child field and non-nil child", q: "field[child_field]=a&field[child_field_i]=1", v: &s{Field: &c{}}, expected: s{Field: &c{Field: stringP("a"), FieldI: intP(1)}}},
+				{name: "no child field", q: "field[no]=1", v: &s{}, expected: s{Field: &c{Field: nil, FieldI: nil}}},
+				{name: "not assign value", q: "field[child_field]=a&field[child_field_i]=a", v: &s{}, err: fmt.Errorf(`"a" can not be assign to int`)},
+				{name: "no field", q: "no=1", v: &s{}, expected: s{Field: &c{Field: nil, FieldI: nil}}},
+			})
+		})
 	})
 }
 

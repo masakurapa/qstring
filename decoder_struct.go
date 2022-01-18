@@ -1,7 +1,6 @@
 package qstring
 
 import (
-	"fmt"
 	"reflect"
 	"strconv"
 )
@@ -12,43 +11,13 @@ func (d *decoder) decodeStruct(rv reflect.Value) error {
 		return err
 	}
 
-	for i := 0; i < rv.NumField(); i++ {
-		f := rv.Type().Field(i)
-		if !f.IsExported() {
-			continue
-		}
-
-		tag, _ := parseTag(f.Tag)
-		if tag == "" {
-			continue
-		}
-
-		val, ok := valueMap[tag]
-		if !ok {
-			continue
-		}
-
-		// if opt.omitempty && isEmptyValue(frv) {
-		// 	continue
-		// }
-
-		var err error
-		frv := rv.FieldByName(f.Name)
-		if frv.Kind() == reflect.Ptr {
-			err = d.setTypeVlaue(frv.Type().Elem(), frv, val, true)
-		} else {
-			err = d.setTypeVlaue(frv.Type(), frv, val, false)
-		}
-
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return d.setStruct(rv, valueMap, false)
 }
 
 func (d *decoder) setTypeVlaue(rt reflect.Type, rv reflect.Value, uv urlValue, isPtr bool) error {
 	switch rt.Kind() {
+	case reflect.Struct:
+		return d.setStruct(rv, uv.child, isPtr)
 	case reflect.Bool:
 		return d.setBool(rv, uv, isPtr)
 	case reflect.Int:
@@ -79,9 +48,50 @@ func (d *decoder) setTypeVlaue(rt reflect.Type, rv reflect.Value, uv urlValue, i
 		return d.setSlice(rv, uv, isPtr)
 	}
 
-	fmt.Println(rt.String())
-
 	return &UnsupportedTypeError{rt}
+}
+
+func (d *decoder) setStruct(rv reflect.Value, uvm urlValueMap, isPtr bool) error {
+	if rv.Kind() == reflect.Ptr {
+		if rv.IsNil() {
+			rv.Set(reflect.New(rv.Type().Elem()))
+		}
+		rv = rv.Elem()
+	}
+
+	for i := 0; i < rv.NumField(); i++ {
+		f := rv.Type().Field(i)
+		if !f.IsExported() {
+			continue
+		}
+
+		tag, _ := parseTag(f.Tag)
+		if tag == "" {
+			continue
+		}
+
+		val, ok := uvm[tag]
+		if !ok {
+			continue
+		}
+
+		// if opt.omitempty && isEmptyValue(frv) {
+		// 	continue
+		// }
+
+		var err error
+		frv := rv.FieldByName(f.Name)
+		if frv.Kind() == reflect.Ptr {
+			err = d.setTypeVlaue(frv.Type().Elem(), frv, val, true)
+		} else {
+			err = d.setTypeVlaue(frv.Type(), frv, val, false)
+		}
+
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (d *decoder) setBool(rv reflect.Value, uv urlValue, isPtr bool) error {
