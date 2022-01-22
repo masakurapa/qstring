@@ -100,8 +100,10 @@ func (e *encoder) encodeByType(key string, rv reflect.Value) error {
 }
 
 func (e *encoder) encodeMap(key string, rv reflect.Value) error {
-	if rv.IsNil() {
-		e.v.Add(key, defaultNilValue)
+	if rv.IsNil() || rv.Len() == 0 {
+		if key != "" {
+			e.v.Add(key, defaultNilValue)
+		}
 		return nil
 	}
 
@@ -120,6 +122,11 @@ func (e *encoder) encodeMap(key string, rv reflect.Value) error {
 }
 
 func (e *encoder) encodeArray(key string, rv reflect.Value) error {
+	if rv.Len() == 0 {
+		e.v.Add(key, defaultNilValue)
+		return nil
+	}
+
 	for i := 0; i < rv.Len(); i++ {
 		k := key + "[" + strconv.Itoa(i) + "]"
 		if err := e.encodeByType(k, rv.Index(i)); err != nil {

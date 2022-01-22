@@ -68,11 +68,17 @@ func TestEncode(t *testing.T) {
 			})
 		})
 
+		t.Run("empty map", func(t *testing.T) {
+			runEncodeTest(t, []encodeCase{
+				{name: "string type value", q: map[string]string{}, expected: ""},
+				{name: "string type value pointer", q: &map[string]string{}, expected: ""},
+				{name: "interface type value", q: qstring.Q{}, expected: ""},
+				{name: "interface type value pointer", q: &qstring.Q{}, expected: ""},
+			})
+		})
+
 		t.Run("primitive type value", func(t *testing.T) {
 			runEncodeTest(t, []encodeCase{
-				{name: "empty map", q: qstring.Q{}, expected: ""},
-				{name: "empty map pointer", q: &qstring.Q{}, expected: ""},
-
 				{name: "bool value", q: qstring.Q{"key": true}, expected: "key=true"},
 				{name: "bool value pointer", q: qstring.Q{"key": boolP(false)}, expected: "key=false"},
 
@@ -778,7 +784,7 @@ func TestEncode(t *testing.T) {
 			runEncodeTest(t, []encodeCase{
 				{name: "has value", q: s{Field: &map[string]string{"a": "1", "1": "2", "true": "3"}}, expected: "field[1]=2&field[a]=1&field[true]=3"},
 				{name: "empty value", q: s{Field: &map[string]string{}}, expected: "field="},
-				{name: "nil value", q: s{}, expected: ""},
+				{name: "nil value", q: s{}, expected: "field="},
 			})
 		})
 		t.Run("string value map pointer omitempty", func(t *testing.T) {
@@ -819,7 +825,7 @@ func TestEncode(t *testing.T) {
 			runEncodeTest(t, []encodeCase{
 				{name: "has value", q: s{Field: &map[string]interface{}{"a": "1", "1": "2", "true": "3"}}, expected: "field[1]=2&field[a]=1&field[true]=3"},
 				{name: "empty value", q: s{Field: &map[string]interface{}{}}, expected: "field="},
-				{name: "nil value", q: s{}, expected: ""},
+				{name: "nil value", q: s{}, expected: "field="},
 			})
 		})
 		t.Run("interface value map pointer omitempty", func(t *testing.T) {
@@ -829,7 +835,7 @@ func TestEncode(t *testing.T) {
 			runEncodeTest(t, []encodeCase{
 				{name: "has value", q: s{Field: &map[string]interface{}{"a": "1", "1": "2", "true": "3"}}, expected: "field[1]=2&field[a]=1&field[true]=3"},
 				{name: "empty value", q: s{Field: &map[string]interface{}{}}, expected: "field="},
-				{name: "nil value", q: s{}, expected: ""},
+				{name: "nil value", q: s{Field: nil}, expected: ""},
 			})
 		})
 
