@@ -551,7 +551,8 @@ func TestDecode(t *testing.T) {
 			}
 
 			runDecodeTest(t, []decodeCase{
-				{name: "map", q: "field[a]=1&field[1]=b&field[c]=true", v: &s{}, expected: s{Field: qstring.Q{"a": "1", "1": "b", "c": "true"}}},
+				{name: "nil", q: "field[a]=1&field[1]=b&field[c]=true", v: &s{Field: nil}, expected: s{Field: qstring.Q{"a": "1", "1": "b", "c": "true"}}},
+				{name: "non-nil", q: "field[a]=1&field[1]=b&field[c]=true", v: &s{}, expected: s{Field: qstring.Q{"a": "1", "1": "b", "c": "true"}}},
 				{name: "not assign value", q: "field=a", v: &s{}, err: fmt.Errorf(`"a" can not be assign to qstring.Q`)},
 				{name: "no field", q: "no=1", v: &s{}, expected: s{Field: nil}},
 			})
@@ -562,8 +563,8 @@ func TestDecode(t *testing.T) {
 			}
 
 			runDecodeTest(t, []decodeCase{
-				{name: "map and nil child", q: "field[a]=1&field[1]=b&field[c]=true", v: &s{}, expected: s{Field: &qstring.Q{"a": "1", "1": "b", "c": "true"}}},
-				{name: "map and non-nil child", q: "field[a]=1&field[1]=b&field[c]=true", v: &s{Field: &qstring.Q{}}, expected: s{Field: &qstring.Q{"a": "1", "1": "b", "c": "true"}}},
+				{name: "nil", q: "field[a]=1&field[1]=b&field[c]=true", v: &s{}, expected: s{Field: &qstring.Q{"a": "1", "1": "b", "c": "true"}}},
+				{name: "non-nil", q: "field[a]=1&field[1]=b&field[c]=true", v: &s{Field: &qstring.Q{}}, expected: s{Field: &qstring.Q{"a": "1", "1": "b", "c": "true"}}},
 				{name: "not assign value", q: "field=a", v: &s{}, err: fmt.Errorf(`"a" can not be assign to qstring.Q`)},
 				{name: "no field", q: "no=1", v: &s{}, expected: s{Field: nil}},
 			})
