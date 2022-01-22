@@ -17,32 +17,36 @@ type encodeCase struct {
 
 func TestEncode(t *testing.T) {
 	t.Run("unsupported type", func(t *testing.T) {
-		// TODO: add [byte, rune, complex64, complex128, interface{}]
 		runEncodeTest(t, []encodeCase{
 			{name: "nil", q: nil, err: fmt.Errorf("nil is not supported")},
-			{name: "bool type", q: true, err: fmt.Errorf("bool is not supported")},
-			{name: "int type", q: int(123), err: fmt.Errorf("int is not supported")},
-			{name: "int64 type", q: int64(123), err: fmt.Errorf("int64 is not supported")},
-			{name: "int32 type", q: int32(123), err: fmt.Errorf("int32 is not supported")},
-			{name: "int16 type", q: int16(123), err: fmt.Errorf("int16 is not supported")},
-			{name: "int8 type", q: int8(123), err: fmt.Errorf("int8 is not supported")},
-			{name: "uint type", q: uint(123), err: fmt.Errorf("uint is not supported")},
-			{name: "uint64 type", q: uint64(123), err: fmt.Errorf("uint64 is not supported")},
-			{name: "uint32 type", q: uint32(123), err: fmt.Errorf("uint32 is not supported")},
-			{name: "uint16 type", q: uint16(123), err: fmt.Errorf("uint16 is not supported")},
-			{name: "uint8 type", q: uint8(123), err: fmt.Errorf("uint8 is not supported")},
-			{name: "float64 type", q: float64(123.456), err: fmt.Errorf("float64 is not supported")},
-			{name: "float32 type", q: float32(123.456), err: fmt.Errorf("float32 is not supported")},
-			{name: "array type", q: [3]string{"1", "2", "3"}, err: fmt.Errorf("[3]string is not supported")},
-			{name: "slice type", q: []string{"1", "2", "3"}, err: fmt.Errorf("[]string is not supported")},
-			{name: "uintptr type", q: uintptr(1), err: fmt.Errorf("uintptr is not supported")},
-			{name: "complex64 type", q: complex64(1), err: fmt.Errorf("complex64 is not supported")},
-			{name: "complex128 type", q: complex128(1), err: fmt.Errorf("complex128 is not supported")},
-			{name: "chan type", q: make(chan int), err: fmt.Errorf("chan is not supported")},
-			{name: "func type", q: func() {}, err: fmt.Errorf("func is not supported")},
-			{name: "ptr type", q: uintP(123), err: fmt.Errorf("uint is not supported")},
-			{name: "nil ptr type", q: func() *string { return nil }(), err: fmt.Errorf("nil ptr is not supported")},
-			{name: "unsafe pointer type", q: unsafeP("1"), err: fmt.Errorf("unsafe.Pointer is not supported")},
+			{name: "bool", q: true, err: fmt.Errorf("bool is not supported")},
+			{name: "int", q: int(123), err: fmt.Errorf("int is not supported")},
+			{name: "int64", q: int64(123), err: fmt.Errorf("int64 is not supported")},
+			{name: "int32", q: int32(123), err: fmt.Errorf("int32 is not supported")},
+			{name: "int16", q: int16(123), err: fmt.Errorf("int16 is not supported")},
+			{name: "int8", q: int8(123), err: fmt.Errorf("int8 is not supported")},
+			{name: "rune", q: rune(123), err: fmt.Errorf("int32 is not supported")},
+			{name: "char", q: '1', err: fmt.Errorf("int32 is not supported")},
+			{name: "uint", q: uint(123), err: fmt.Errorf("uint is not supported")},
+			{name: "uint64", q: uint64(123), err: fmt.Errorf("uint64 is not supported")},
+			{name: "uint32", q: uint32(123), err: fmt.Errorf("uint32 is not supported")},
+			{name: "uint16", q: uint16(123), err: fmt.Errorf("uint16 is not supported")},
+			{name: "uint8", q: uint8(123), err: fmt.Errorf("uint8 is not supported")},
+			{name: "byte", q: byte(123), err: fmt.Errorf("uint8 is not supported")},
+			{name: "float64", q: float64(123.456), err: fmt.Errorf("float64 is not supported")},
+			{name: "float32", q: float32(123.456), err: fmt.Errorf("float32 is not supported")},
+			{name: "complex128", q: complex128(123.456), err: fmt.Errorf("complex128 is not supported")},
+			{name: "complex64", q: complex64(123.456), err: fmt.Errorf("complex64 is not supported")},
+			{name: "array", q: [3]string{"1", "2", "3"}, err: fmt.Errorf("[3]string is not supported")},
+			{name: "slice", q: []string{"1", "2", "3"}, err: fmt.Errorf("[]string is not supported")},
+			{name: "uintptr", q: uintptr(1), err: fmt.Errorf("uintptr is not supported")},
+			{name: "complex64", q: complex64(1), err: fmt.Errorf("complex64 is not supported")},
+			{name: "complex128", q: complex128(1), err: fmt.Errorf("complex128 is not supported")},
+			{name: "chan", q: make(chan int), err: fmt.Errorf("chan is not supported")},
+			{name: "func", q: func() {}, err: fmt.Errorf("func is not supported")},
+			{name: "ptr", q: uintP(123), err: fmt.Errorf("uint is not supported")},
+			{name: "nil ptr", q: func() *string { return nil }(), err: fmt.Errorf("nil ptr is not supported")},
+			{name: "unsafe pointer", q: unsafeP("1"), err: fmt.Errorf("unsafe.Pointer is not supported")},
 		})
 	})
 
@@ -56,7 +60,6 @@ func TestEncode(t *testing.T) {
 	// TODO: pointer value (map[string]*string) test
 	t.Run("map", func(t *testing.T) {
 		t.Run("unsupported type value", func(t *testing.T) {
-			// TODO: add [byte, rune, complex64, complex128]
 			runEncodeTest(t, []encodeCase{
 				{name: "uintptr", q: qstring.Q{"key": uintptr(1)}, err: fmt.Errorf("uintptr is not supported")},
 				{name: "complex64", q: qstring.Q{"key": complex64(1)}, err: fmt.Errorf("complex64 is not supported")},
@@ -92,7 +95,10 @@ func TestEncode(t *testing.T) {
 				{name: "int16 value pointer", q: qstring.Q{"key": int16P(123)}, expected: "key=123"},
 				{name: "int8 value", q: qstring.Q{"key": int8(123)}, expected: "key=123"},
 				{name: "int8 value pointer", q: qstring.Q{"key": int8P(123)}, expected: "key=123"},
-
+				{name: "rune value", q: qstring.Q{"key": rune(123)}, expected: "key=123"},
+				{name: "rune value pointer", q: qstring.Q{"key": runeP(123)}, expected: "key=123"},
+				{name: "char value", q: qstring.Q{"key": '1'}, expected: "key=49"},         // 1 is 49 in ascii
+				{name: "char value pointer", q: qstring.Q{"key": '1'}, expected: "key=49"}, // 1 is 49 in ascii
 				{name: "uint value", q: qstring.Q{"key": uint(123)}, expected: "key=123"},
 				{name: "uint value pointer", q: qstring.Q{"key": uintP(123)}, expected: "key=123"},
 				{name: "uint64 value", q: qstring.Q{"key": uint64(123)}, expected: "key=123"},
@@ -103,6 +109,8 @@ func TestEncode(t *testing.T) {
 				{name: "uint16 value pointer", q: qstring.Q{"key": uint16P(123)}, expected: "key=123"},
 				{name: "uint8 value", q: qstring.Q{"key": uint8(123)}, expected: "key=123"},
 				{name: "uint8 value pointer", q: qstring.Q{"key": uint8P(123)}, expected: "key=123"},
+				{name: "byte value", q: qstring.Q{"key": byte(123)}, expected: "key=123"},
+				{name: "byte value pointer", q: qstring.Q{"key": byteP(123)}, expected: "key=123"},
 
 				{name: "float64 value", q: qstring.Q{"key": float64(123.456)}, expected: "key=123.456"},
 				{name: "float64 value pointer", q: qstring.Q{"key": float64P(123.456)}, expected: "key=123.456"},
@@ -178,6 +186,8 @@ func TestEncode(t *testing.T) {
 	})
 
 	t.Run("struct", func(t *testing.T) {
+		// TODO: unsupported field type
+
 		t.Run("excluded", func(t *testing.T) {
 			runEncodeTest(t, []encodeCase{
 				{name: "no tag", q: struct{ Field string }{}, expected: ""},

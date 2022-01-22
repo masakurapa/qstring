@@ -606,11 +606,13 @@ func int8P(v int8) *int8              { return &v }
 func int16P(v int16) *int16           { return &v }
 func int32P(v int32) *int32           { return &v }
 func int64P(v int64) *int64           { return &v }
+func runeP(v rune) *rune              { return &v }
 func uint8P(v uint8) *uint8           { return &v }
 func uintP(v uint) *uint              { return &v }
 func uint16P(v uint16) *uint16        { return &v }
 func uint32P(v uint32) *uint32        { return &v }
 func uint64P(v uint64) *uint64        { return &v }
+func byteP(v byte) *byte              { return &v }
 func float64P(v float64) *float64     { return &v }
 func float32P(v float32) *float32     { return &v }
 func stringP(v string) *string        { return &v }
