@@ -8,25 +8,28 @@ type S []interface{}
 
 // Encode returns the URL-encoded query string.
 //
-// Support struct, map type where the key is a string.
+// The argument supports
+// string type, struct, map type where the key is a string.
 //
-// By default, a nil value will be output.
-//
-// If you don't want to output nil values,
-// Please specify option "omitempty" in the tag.
+// The struct needs to specify the "qstring" tag in the public field.
+// If you don't want to output zero-value, Please specify option "omitempty" in the tag.
 func Encode(v interface{}) (string, error) {
 	e := encoder{}
 	return e.encode(v)
 }
 
-// Decode returns the URL-encoded query string
+// Decode is URL-decodes query string.
 //
-// add "?" to the beginning and return
+// The second argument supports
+// string type, array, slice, struct, map type where the key is a string.
+//
+// The struct needs to specify the "qstring" tag in the public field.
 func Decode(s string, v interface{}) error {
 	d := decoder{query: s}
 	return d.decode(v)
 }
 
+// DecodeToString returns the URL-decoded query string.
 func DecodeToString(s string) (string, error) {
 	var v string
 	err := Decode(s, &v)
@@ -36,6 +39,7 @@ func DecodeToString(s string) (string, error) {
 	return v, nil
 }
 
+// DecodeToMap returns the URL-decoded query string as map type
 func DecodeToMap(s string) (Q, error) {
 	var v Q
 	err := Decode(s, &v)
@@ -45,6 +49,7 @@ func DecodeToMap(s string) (Q, error) {
 	return v, nil
 }
 
+// DecodeToMap returns the URL-decoded query string as slice type
 func DecodeToSlice(s string) ([]string, error) {
 	var v []string
 	err := Decode(s, &v)
