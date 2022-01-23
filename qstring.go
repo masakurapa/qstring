@@ -27,11 +27,29 @@ func Decode(s string, v interface{}) error {
 	return d.decode(v)
 }
 
+func DecodeToString(s string) (string, error) {
+	var v string
+	err := Decode(s, &v)
+	if err != nil {
+		return "", err
+	}
+	return v, nil
+}
+
 func DecodeToMap(s string) (Q, error) {
-	var q Q
-	err := Decode(s, &q)
+	var v Q
+	err := Decode(s, &v)
 	if err != nil {
 		return nil, err
 	}
-	return q, nil
+	return v, nil
+}
+
+func DecodeToSlice(s string) ([]string, error) {
+	var v []string
+	err := Decode(s, &v)
+	if err != nil {
+		return nil, err
+	}
+	return v, nil
 }
