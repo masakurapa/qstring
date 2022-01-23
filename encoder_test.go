@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"unsafe"
 
 	"github.com/masakurapa/qstring"
 )
@@ -57,16 +58,15 @@ func TestEncode(t *testing.T) {
 		})
 	})
 
-	// TODO: pointer value (map[string]*string) test
 	t.Run("map", func(t *testing.T) {
 		t.Run("unsupported type value", func(t *testing.T) {
 			runEncodeTest(t, []encodeCase{
-				{name: "uintptr", q: qstring.Q{"key": uintptr(1)}, err: fmt.Errorf("uintptr is not supported")},
-				{name: "complex64", q: qstring.Q{"key": complex64(1)}, err: fmt.Errorf("complex64 is not supported")},
-				{name: "complex128", q: qstring.Q{"key": complex128(1)}, err: fmt.Errorf("complex128 is not supported")},
+				{name: "uintptr", q: map[string]uintptr{"key": uintptr(1)}, err: fmt.Errorf("uintptr is not supported")},
+				{name: "complex64", q: map[string]complex64{"key": complex64(1)}, err: fmt.Errorf("complex64 is not supported")},
+				{name: "complex128", q: map[string]complex128{"key": complex128(1)}, err: fmt.Errorf("complex128 is not supported")},
 				{name: "chan", q: qstring.Q{"key": make(chan int)}, err: fmt.Errorf("chan is not supported")},
-				{name: "func", q: qstring.Q{"key": func() {}}, err: fmt.Errorf("func is not supported")},
-				{name: "unsafe pointer", q: qstring.Q{"key": unsafeP("1")}, err: fmt.Errorf("unsafe.Pointer is not supported")},
+				{name: "func", q: map[string]func(){"key": func() {}}, err: fmt.Errorf("func is not supported")},
+				{name: "unsafe pointer", q: map[string]unsafe.Pointer{"key": unsafeP("1")}, err: fmt.Errorf("unsafe.Pointer is not supported")},
 				{name: "key is not string", q: map[int]string{100: "val"}, err: fmt.Errorf("map[int]string is not supported")},
 			})
 		})
@@ -80,7 +80,49 @@ func TestEncode(t *testing.T) {
 			})
 		})
 
-		t.Run("primitive type value", func(t *testing.T) {
+		t.Run("supported type value", func(t *testing.T) {
+			runEncodeTest(t, []encodeCase{
+				{name: "bool value", q: map[string]bool{"key": true}, expected: "key=true"},
+				{name: "bool value pointer", q: map[string]*bool{"key": boolP(false)}, expected: "key=false"},
+
+				{name: "int value", q: map[string]int{"key": int(123)}, expected: "key=123"},
+				{name: "int value pointer", q: map[string]*int{"key": intP(123)}, expected: "key=123"},
+				{name: "int64 value", q: map[string]int64{"key": int64(123)}, expected: "key=123"},
+				{name: "int64 value pointer", q: map[string]*int64{"key": int64P(123)}, expected: "key=123"},
+				{name: "int32 value", q: map[string]int32{"key": int32(123)}, expected: "key=123"},
+				{name: "int32 value pointer", q: map[string]*int32{"key": int32P(123)}, expected: "key=123"},
+				{name: "int16 value", q: map[string]int16{"key": int16(123)}, expected: "key=123"},
+				{name: "int16 value pointer", q: map[string]*int16{"key": int16P(123)}, expected: "key=123"},
+				{name: "int8 value", q: map[string]int8{"key": int8(123)}, expected: "key=123"},
+				{name: "int8 value pointer", q: map[string]*int8{"key": int8P(123)}, expected: "key=123"},
+				{name: "rune value", q: map[string]rune{"key": rune(123)}, expected: "key=123"},
+				{name: "rune value pointer", q: map[string]*rune{"key": runeP(123)}, expected: "key=123"},
+				{name: "char value", q: qstring.Q{"key": '1'}, expected: "key=49"},         // 1 is 49 in ascii
+				{name: "char value pointer", q: qstring.Q{"key": '1'}, expected: "key=49"}, // 1 is 49 in ascii
+				{name: "uint value", q: map[string]uint{"key": uint(123)}, expected: "key=123"},
+				{name: "uint value pointer", q: map[string]*uint{"key": uintP(123)}, expected: "key=123"},
+				{name: "uint64 value", q: map[string]uint64{"key": uint64(123)}, expected: "key=123"},
+				{name: "uint64 value pointer", q: map[string]*uint64{"key": uint64P(123)}, expected: "key=123"},
+				{name: "uint32 value", q: map[string]uint32{"key": uint32(123)}, expected: "key=123"},
+				{name: "uint32 value pointer", q: map[string]*uint32{"key": uint32P(123)}, expected: "key=123"},
+				{name: "uint16 value", q: map[string]uint16{"key": uint16(123)}, expected: "key=123"},
+				{name: "uint16 value pointer", q: map[string]*uint16{"key": uint16P(123)}, expected: "key=123"},
+				{name: "uint8 value", q: map[string]uint8{"key": uint8(123)}, expected: "key=123"},
+				{name: "uint8 value pointer", q: map[string]*uint8{"key": uint8P(123)}, expected: "key=123"},
+				{name: "byte value", q: map[string]byte{"key": byte(123)}, expected: "key=123"},
+				{name: "byte value pointer", q: map[string]*byte{"key": byteP(123)}, expected: "key=123"},
+
+				{name: "float64 value", q: map[string]float64{"key": float64(123.456)}, expected: "key=123.456"},
+				{name: "float64 value pointer", q: map[string]*float64{"key": float64P(123.456)}, expected: "key=123.456"},
+				{name: "float32 value", q: map[string]float32{"key": float32(123.456)}, expected: "key=123.456"},
+				{name: "float32 value pointer", q: map[string]*float32{"key": float32P(123.456)}, expected: "key=123.456"},
+
+				{name: "string value", q: map[string]string{"key": "hoge"}, expected: "key=hoge"},
+				{name: "string value pointer", q: map[string]*string{"key": stringP("hoge")}, expected: "key=hoge"},
+			})
+		})
+
+		t.Run("interface type value", func(t *testing.T) {
 			runEncodeTest(t, []encodeCase{
 				{name: "bool value", q: qstring.Q{"key": true}, expected: "key=true"},
 				{name: "bool value pointer", q: qstring.Q{"key": boolP(false)}, expected: "key=false"},
@@ -186,7 +228,25 @@ func TestEncode(t *testing.T) {
 	})
 
 	t.Run("struct", func(t *testing.T) {
-		// TODO: unsupported field type
+		t.Run("unsupported field type", func(t *testing.T) {
+			runEncodeTest(t, []encodeCase{
+				{name: "uintptr", q: struct {
+					Field uintptr `qstring:"field"`
+				}{Field: uintptr(1)}, err: fmt.Errorf("uintptr is not supported")},
+				{name: "complex64", q: struct {
+					Field complex64 `qstring:"field"`
+				}{Field: complex64(1)}, err: fmt.Errorf("complex64 is not supported")},
+				{name: "complex128", q: struct {
+					Field complex128 `qstring:"field"`
+				}{Field: complex128(1)}, err: fmt.Errorf("complex128 is not supported")},
+				{name: "func", q: struct {
+					Field func() `qstring:"field"`
+				}{Field: func() {}}, err: fmt.Errorf("func is not supported")},
+				{name: "unsafe pointer", q: struct {
+					Field unsafe.Pointer `qstring:"field"`
+				}{Field: unsafeP("1")}, err: fmt.Errorf("unsafe.Pointer is not supported")},
+			})
+		})
 
 		t.Run("excluded", func(t *testing.T) {
 			runEncodeTest(t, []encodeCase{
@@ -701,6 +761,45 @@ func TestEncode(t *testing.T) {
 			runEncodeTest(t, []encodeCase{
 				{name: "has value", q: s{Field: &[3]string{"1", "2", "3"}}, expected: "field[0]=1&field[1]=2&field[2]=3"},
 				{name: "empty value", q: s{Field: &[3]string{}}, expected: "field[0]=&field[1]=&field[2]="},
+				{name: "nil value", q: s{}, expected: ""},
+			})
+		})
+
+		t.Run("empty array", func(t *testing.T) {
+			type s struct {
+				Field [0]string `qstring:"field"`
+			}
+			runEncodeTest(t, []encodeCase{
+				{name: "has value", q: s{Field: [0]string{}}, expected: "field="},
+				{name: "empty value", q: s{}, expected: "field="},
+			})
+		})
+		t.Run("empty array omitempty", func(t *testing.T) {
+			type s struct {
+				Field [0]string `qstring:"field,omitempty"`
+			}
+			runEncodeTest(t, []encodeCase{
+				{name: "has value", q: s{Field: [0]string{}}, expected: ""},
+				{name: "empty value", q: s{}, expected: ""},
+			})
+		})
+		t.Run("empty array pointer", func(t *testing.T) {
+			type s struct {
+				Field *[0]string `qstring:"field"`
+			}
+			runEncodeTest(t, []encodeCase{
+				{name: "has value", q: s{Field: &[0]string{}}, expected: "field="},
+				{name: "empty value", q: s{Field: &[0]string{}}, expected: "field="},
+				{name: "nil value", q: s{}, expected: "field="},
+			})
+		})
+		t.Run("empty array pointer omitempty", func(t *testing.T) {
+			type s struct {
+				Field *[0]string `qstring:"field,omitempty"`
+			}
+			runEncodeTest(t, []encodeCase{
+				{name: "has value", q: s{Field: &[0]string{}}, expected: "field="},
+				{name: "empty value", q: s{Field: &[0]string{}}, expected: "field="},
 				{name: "nil value", q: s{}, expected: ""},
 			})
 		})
