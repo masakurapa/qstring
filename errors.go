@@ -70,3 +70,12 @@ type NoAssignableValueError struct {
 func (e *NoAssignableValueError) Error() string {
 	return `"` + e.value + `" can not be assign to ` + e.rt.String()
 }
+
+// MultipleKeysError is an error
+// when attempting to convert a query string with multiple keys
+// into an array or slice
+type MultipleKeysError struct{}
+
+func (e *MultipleKeysError) Error() string {
+	return "cannot decode due to multiple keys"
+}

@@ -54,7 +54,7 @@ func (d *decoder) decodeArray(rv reflect.Value) error {
 	}
 
 	if len(valueMap) != 1 {
-		return nil
+		return &MultipleKeysError{}
 	}
 
 	arrVals := valueMap.firstValue()
@@ -83,7 +83,7 @@ func (d *decoder) decodeSlice(rv reflect.Value) error {
 	}
 
 	if len(valueMap) != 1 {
-		return nil
+		return &MultipleKeysError{}
 	}
 
 	rv.Set(reflect.AppendSlice(rv, reflect.ValueOf(valueMap.firstValue())))

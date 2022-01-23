@@ -60,7 +60,7 @@ func TestDecode(t *testing.T) {
 		runDecodeTest(t, []decodeCase{
 			{name: "success", q: "hoge[]=a&hoge[]=2&hoge[]=3", v: func() *[3]string { var a [3]string; return &a }(), expected: [3]string{"a", "2", "3"}},
 			{name: "capacity exceeded", q: "hoge[]=a&hoge[]=2&hoge[]=3&hoge[]=4", v: func() *[3]string { var a [3]string; return &a }(), err: fmt.Errorf("index out of range [4] with [3]string")},
-			{name: "multiple key name", q: "hoge[]=a&fuga[]=2", v: func() *[3]string { var a [3]string; return &a }(), expected: [3]string{}}, //TODO error?
+			{name: "multiple key name", q: "hoge[]=a&fuga[]=2", v: func() *[3]string { var a [3]string; return &a }(), err: fmt.Errorf("cannot decode due to multiple keys")},
 			{name: "int type value", q: "hoge[]=1", v: func() *[3]int { var a [3]int; return &a }(), err: fmt.Errorf("[3]int is not supported")},
 		})
 	})
@@ -68,7 +68,7 @@ func TestDecode(t *testing.T) {
 	t.Run("slice", func(t *testing.T) {
 		runDecodeTest(t, []decodeCase{
 			{name: "success", q: "hoge[]=a&hoge[]=2&hoge[]=3", v: func() *[]string { var a []string; return &a }(), expected: []string{"a", "2", "3"}},
-			{name: "multiple key name", q: "hoge[]=a&fuga[]=2", v: func() *[]string { var a []string; return &a }(), expected: func() []string { var a []string; return a }()}, //TODO error?
+			{name: "multiple key name", q: "hoge[]=a&fuga[]=2", v: func() *[]string { var a []string; return &a }(), err: fmt.Errorf("cannot decode due to multiple keys")},
 			{name: "int type value", q: "hoge[]=1", v: func() *[]int { var a []int; return &a }(), err: fmt.Errorf("[]int is not supported")},
 		})
 	})
