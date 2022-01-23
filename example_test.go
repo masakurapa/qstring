@@ -6,14 +6,14 @@ import (
 	"github.com/masakurapa/qstring"
 )
 
-func ExampleEncode_FromString() {
+func ExampleEncode_fromString() {
 	s, _ := qstring.Encode("key[a]=1&key[b]=2")
 	fmt.Println(s)
 
 	// Output: key%5Ba%5D=1&key%5Bb%5D=2
 }
 
-func ExampleEncode_FromMap() {
+func ExampleEncode_fromMap() {
 	s, _ := qstring.Encode(qstring.Q{
 		"key": qstring.Q{
 			"a": "1",
@@ -25,7 +25,7 @@ func ExampleEncode_FromMap() {
 	// Output: key%5Ba%5D=1&key%5Bb%5D=2
 }
 
-func ExampleEncode_FromStruct() {
+func ExampleEncode_fromStruct() {
 	type b struct {
 		A string `qstring:"a"`
 		B string `qstring:"b"`
@@ -49,7 +49,7 @@ func ExampleEncode_FromStruct() {
 	// Output: key%5Ba%5D=1&key%5Bb%5D=2
 }
 
-func ExampleDecode_ToString() {
+func ExampleDecode_toString() {
 	v := ""
 	_ = qstring.Decode("key%5Ba%5D=1&key%5Bb%5D=2", &v)
 	fmt.Println(v)
@@ -57,7 +57,7 @@ func ExampleDecode_ToString() {
 	// Output: key[a]=1&key[b]=2
 }
 
-func ExampleDecode_ToArray() {
+func ExampleDecode_toArray() {
 	v := [3]string{}
 	_ = qstring.Decode("key%5B0%5D=a&key%5B1%5D=b&key%5B2%5D=c", &v)
 	fmt.Println(v)
@@ -65,7 +65,7 @@ func ExampleDecode_ToArray() {
 	// Output: [a b c]
 }
 
-func ExampleDecode_ToSlice() {
+func ExampleDecode_toSlice() {
 	v := []string{}
 	_ = qstring.Decode("key%5B0%5D=a&key%5B1%5D=b&key%5B2%5D=c", &v)
 	fmt.Println(v)
@@ -73,7 +73,7 @@ func ExampleDecode_ToSlice() {
 	// Output: [a b c]
 }
 
-func ExampleDecode_ToMap() {
+func ExampleDecode_toMap() {
 	v := qstring.Q{}
 	_ = qstring.Decode("key%5Ba%5D=1&key%5Bb%5D=2", &v)
 	fmt.Println(v)
@@ -81,7 +81,7 @@ func ExampleDecode_ToMap() {
 	// Output: map[key:map[a:1 b:2]]
 }
 
-func ExampleDecode_ToStruct() {
+func ExampleDecode_toStruct() {
 	type b struct {
 		A string `qstring:"a"`
 		B string `qstring:"b"`
