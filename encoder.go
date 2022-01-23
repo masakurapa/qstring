@@ -38,12 +38,7 @@ func (e *encoder) encode(v interface{}) (string, error) {
 			return "", err
 		}
 	case reflect.String:
-		q := ""
-		if strings.HasPrefix(rv.String(), que) {
-			q = que
-		}
-		s := strings.TrimPrefix(rv.String(), que)
-		return q + strings.ReplaceAll(url.QueryEscape(s), "%3D", "="), nil
+		return e.encodeString(rv), nil
 	default:
 		return "", &UnsupportedTypeError{rv.Type()}
 	}
@@ -97,6 +92,21 @@ func (e *encoder) encodeByType(key string, rv reflect.Value) error {
 	}
 
 	return nil
+}
+
+func (e *encoder) encodeString(rv reflect.Value) string {
+	q := ""
+	if strings.HasPrefix(rv.String(), que) {
+		q = que
+	}
+
+	queries := strings.Split(strings.TrimPrefix(rv.String(), que), "&")
+	encoded := make([]string, 0, len(queries))
+
+	for _, s := range queries {
+		encoded = append(encoded, strings.ReplaceAll(url.QueryEscape(s), "%3D", "="))
+	}
+	return q + strings.Join(encoded, "&")
 }
 
 func (e *encoder) encodeMap(key string, rv reflect.Value) error {

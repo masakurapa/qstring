@@ -53,8 +53,11 @@ func TestEncode(t *testing.T) {
 
 	t.Run("string", func(t *testing.T) {
 		runEncodeTest(t, []encodeCase{
-			{name: "has quote", q: "?hoge[key]=fuga", expected: "?hoge[key]=fuga"},
-			{name: "not has quote", q: "hoge[key]=fuga", expected: "hoge[key]=fuga"},
+			{name: "single value", q: "hoge=fuga", expected: "hoge=fuga"},
+			{name: "single value and has quote", q: "?hoge=fuga", expected: "?hoge=fuga"},
+			{name: "multiple value", q: "hoge=fuga&fuga=hoge", expected: "hoge=fuga&fuga=hoge"},
+			{name: "array value", q: "hoge[]=fuga", expected: "hoge[]=fuga"},
+			{name: "map value", q: "hoge[key]=fuga", expected: "hoge[key]=fuga"},
 		})
 	})
 
