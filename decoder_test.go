@@ -25,26 +25,27 @@ func TestDecode(t *testing.T) {
 			{name: "nil", q: q, v: nil, err: fmt.Errorf("nil is not supported")},
 			{name: "not pointer", q: q, v: func() string { return "" }(), err: fmt.Errorf("non-pointer is not supported")},
 
-			{name: "bool type", q: q, v: boolP(false), err: fmt.Errorf("bool is not supported")},
-			{name: "int type", q: q, v: intP(0), err: fmt.Errorf("int is not supported")},
-			{name: "int64 type", q: q, v: int64P(0), err: fmt.Errorf("int64 is not supported")},
-			{name: "int32 type", q: q, v: int32P(0), err: fmt.Errorf("int32 is not supported")},
-			{name: "int16 type", q: q, v: int16P(0), err: fmt.Errorf("int16 is not supported")},
-			{name: "int8 type", q: q, v: int8P(0), err: fmt.Errorf("int8 is not supported")},
-			{name: "uint type", q: q, v: uintP(0), err: fmt.Errorf("uint is not supported")},
-			{name: "uint64 type", q: q, v: uint64P(0), err: fmt.Errorf("uint64 is not supported")},
-			{name: "uint32 type", q: q, v: uint32P(0), err: fmt.Errorf("uint32 is not supported")},
-			{name: "uint16 type", q: q, v: uint16P(0), err: fmt.Errorf("uint16 is not supported")},
-			{name: "uint8 type", q: q, v: uint8P(0), err: fmt.Errorf("uint8 is not supported")},
-			{name: "float64 type", q: q, v: float64P(0), err: fmt.Errorf("float64 is not supported")},
-			{name: "float32 type", q: q, v: float32P(0), err: fmt.Errorf("float32 is not supported")},
-			{name: "uintptr type", q: q, v: func() *uintptr { var a uintptr; return &a }(), err: fmt.Errorf("uintptr is not supported")},
-			{name: "complex64 type", q: q, v: func() *complex64 { var a complex64; return &a }(), err: fmt.Errorf("complex64 is not supported")},
-			{name: "complex128 type", q: q, v: func() *complex128 { var a complex128; return &a }(), err: fmt.Errorf("complex128 is not supported")},
-			// {name: "chan type", q: q, v: func() *chan { var a chan; return &a }(), err: fmt.Errorf("chan is not supported")},
-			{name: "func type", q: q, v: func() *string { return nil }, err: fmt.Errorf("non-pointer is not supported")},
-			{name: "nil ptr type", q: q, v: func() *bool { return nil }(), err: fmt.Errorf("nil ptr is not supported")},
-			{name: "unsafe pointer type", q: q, v: func() *unsafe.Pointer { var a unsafe.Pointer; return &a }(), err: fmt.Errorf("unsafe.Pointer is not supported")},
+			{name: "bool", q: q, v: boolP(false), err: fmt.Errorf("bool is not supported")},
+			{name: "int", q: q, v: intP(0), err: fmt.Errorf("int is not supported")},
+			{name: "int64", q: q, v: int64P(0), err: fmt.Errorf("int64 is not supported")},
+			{name: "int32", q: q, v: int32P(0), err: fmt.Errorf("int32 is not supported")},
+			{name: "int16", q: q, v: int16P(0), err: fmt.Errorf("int16 is not supported")},
+			{name: "int8", q: q, v: int8P(0), err: fmt.Errorf("int8 is not supported")},
+			{name: "rune", q: q, v: runeP(0), err: fmt.Errorf("int32 is not supported")},
+			{name: "uint", q: q, v: uintP(0), err: fmt.Errorf("uint is not supported")},
+			{name: "uint64", q: q, v: uint64P(0), err: fmt.Errorf("uint64 is not supported")},
+			{name: "uint32", q: q, v: uint32P(0), err: fmt.Errorf("uint32 is not supported")},
+			{name: "uint16", q: q, v: uint16P(0), err: fmt.Errorf("uint16 is not supported")},
+			{name: "uint8", q: q, v: uint8P(0), err: fmt.Errorf("uint8 is not supported")},
+			{name: "byte", q: q, v: byteP(0), err: fmt.Errorf("uint8 is not supported")},
+			{name: "float64", q: q, v: float64P(0), err: fmt.Errorf("float64 is not supported")},
+			{name: "float32", q: q, v: float32P(0), err: fmt.Errorf("float32 is not supported")},
+			{name: "complex128", q: q, v: complex128P(0), err: fmt.Errorf("complex128 is not supported")},
+			{name: "complex64", q: q, v: complex64P(0), err: fmt.Errorf("complex64 is not supported")},
+			{name: "uintptr", q: q, v: func() *uintptr { var a uintptr; return &a }(), err: fmt.Errorf("uintptr is not supported")},
+			{name: "func", q: q, v: func() *string { return nil }, err: fmt.Errorf("non-pointer is not supported")},
+			{name: "nil pointer", q: q, v: func() *bool { return nil }(), err: fmt.Errorf("nil ptr is not supported")},
+			{name: "unsafe pointer", q: q, v: func() *unsafe.Pointer { var a unsafe.Pointer; return &a }(), err: fmt.Errorf("unsafe.Pointer is not supported")},
 		})
 	})
 
@@ -57,35 +58,84 @@ func TestDecode(t *testing.T) {
 
 	t.Run("array", func(t *testing.T) {
 		runDecodeTest(t, []decodeCase{
-			{name: "string type", q: "hoge[]=a&hoge[]=2&hoge[]=3", v: func() *[3]string { var a [3]string; return &a }(), expected: [3]string{"a", "2", "3"}},
-			{name: "string type - capacity exceeded", q: "hoge[]=a&hoge[]=2&hoge[]=3&hoge[]=4", v: func() *[3]string { var a [3]string; return &a }(), err: fmt.Errorf("index out of range [4] with [3]string")},
-			{name: "string type - multiple key name", q: "hoge[]=a&fuga[]=2", v: func() *[3]string { var a [3]string; return &a }(), expected: [3]string{}}, //TODO error?
-			{name: "int type", q: "hoge[]=1", v: func() *[3]int { var a [3]int; return &a }(), err: fmt.Errorf("[3]int is not supported")},
+			{name: "success", q: "hoge[]=a&hoge[]=2&hoge[]=3", v: func() *[3]string { var a [3]string; return &a }(), expected: [3]string{"a", "2", "3"}},
+			{name: "capacity exceeded", q: "hoge[]=a&hoge[]=2&hoge[]=3&hoge[]=4", v: func() *[3]string { var a [3]string; return &a }(), err: fmt.Errorf("index out of range [4] with [3]string")},
+			{name: "multiple key name", q: "hoge[]=a&fuga[]=2", v: func() *[3]string { var a [3]string; return &a }(), expected: [3]string{}}, //TODO error?
+			{name: "int type value", q: "hoge[]=1", v: func() *[3]int { var a [3]int; return &a }(), err: fmt.Errorf("[3]int is not supported")},
 		})
 	})
 
 	t.Run("slice", func(t *testing.T) {
 		runDecodeTest(t, []decodeCase{
-			{name: "string type", q: "hoge[]=a&hoge[]=2&hoge[]=3", v: func() *[]string { var a []string; return &a }(), expected: []string{"a", "2", "3"}},
-			{name: "int type", q: "hoge[]=1", v: func() *[]int { var a []int; return &a }(), err: fmt.Errorf("[]int is not supported")},
-			{name: "string type - multiple key name", q: "hoge[]=a&fuga[]=2", v: func() *[]string { var a []string; return &a }(), expected: func() []string { var a []string; return a }()}, //TODO error?
+			{name: "success", q: "hoge[]=a&hoge[]=2&hoge[]=3", v: func() *[]string { var a []string; return &a }(), expected: []string{"a", "2", "3"}},
+			{name: "multiple key name", q: "hoge[]=a&fuga[]=2", v: func() *[]string { var a []string; return &a }(), expected: func() []string { var a []string; return a }()}, //TODO error?
+			{name: "int type value", q: "hoge[]=1", v: func() *[]int { var a []int; return &a }(), err: fmt.Errorf("[]int is not supported")},
 		})
 	})
 
 	t.Run("map", func(t *testing.T) {
-		runDecodeTest(t, []decodeCase{
-			{name: "single key name", q: "hoge=a", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": "a"}},
-			{name: "multiple key name", q: "hoge=a&fuga=1", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": "a", "fuga": "1"}},
-			{name: "duplicate key name", q: "hoge=a&hoge=1", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": []string{"a", "1"}}},
-			{name: "array key", q: "hoge[]=a&hoge[]=2&hoge[]=3", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": []string{"a", "2", "3"}}},
-			{name: "index array key", q: "hoge[0]=a&hoge[1]=2&hoge[2]=3", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": []string{"a", "2", "3"}}},
-			{name: "nested array and array", q: "hoge[0][0]=a&hoge[0][1]=2&hoge[0][2]=3", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": qstring.S{[]string{"a", "2", "3"}}}},
-			{name: "nested map and array", q: "hoge[a][0]=a&hoge[a][1]=2&hoge[a][2]=3", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": qstring.Q{"a": []string{"a", "2", "3"}}}},
-			{name: "nested map and map", q: "hoge[a][b]=a&hoge[a][1]=2&hoge[0][a]=3", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": qstring.Q{"0": qstring.Q{"a": "3"}, "a": qstring.Q{"1": "2", "b": "a"}}}},
+		t.Run("unsupported value type", func(t *testing.T) {
+			q := "key=1"
+			runDecodeTest(t, []decodeCase{
+				{name: "bool", q: q, v: &map[string]bool{}, err: fmt.Errorf("map[string]bool is not supported")},
+				{name: "int", q: q, v: &map[string]int{}, err: fmt.Errorf("map[string]int is not supported")},
+				{name: "int64", q: q, v: &map[string]int64{}, err: fmt.Errorf("map[string]int64 is not supported")},
+				{name: "int32", q: q, v: &map[string]int32{}, err: fmt.Errorf("map[string]int32 is not supported")},
+				{name: "int16", q: q, v: &map[string]int16{}, err: fmt.Errorf("map[string]int16 is not supported")},
+				{name: "int8", q: q, v: &map[string]int8{}, err: fmt.Errorf("map[string]int8 is not supported")},
+				{name: "rune", q: q, v: &map[string]rune{}, err: fmt.Errorf("map[string]int32 is not supported")},
+				{name: "uint", q: q, v: &map[string]uint{}, err: fmt.Errorf("map[string]uint is not supported")},
+				{name: "uint64", q: q, v: &map[string]uint64{}, err: fmt.Errorf("map[string]uint64 is not supported")},
+				{name: "uint32", q: q, v: &map[string]uint32{}, err: fmt.Errorf("map[string]uint32 is not supported")},
+				{name: "uint16", q: q, v: &map[string]uint16{}, err: fmt.Errorf("map[string]uint16 is not supported")},
+				{name: "uint8", q: q, v: &map[string]uint8{}, err: fmt.Errorf("map[string]uint8 is not supported")},
+				{name: "byte", q: q, v: &map[string]byte{}, err: fmt.Errorf("map[string]uint8 is not supported")},
+				{name: "float64", q: q, v: &map[string]float64{}, err: fmt.Errorf("map[string]float64 is not supported")},
+				{name: "float32", q: q, v: &map[string]float32{}, err: fmt.Errorf("map[string]float32 is not supported")},
+				{name: "complex128", q: q, v: &map[string]complex128{}, err: fmt.Errorf("map[string]complex128 is not supported")},
+				{name: "complex64", q: q, v: &map[string]complex64{}, err: fmt.Errorf("map[string]complex64 is not supported")},
+				{name: "uintptr", q: q, v: &map[string]uintptr{}, err: fmt.Errorf("map[string]uintptr is not supported")},
+				{name: "func", q: q, v: &map[string]func(){}, err: fmt.Errorf("map[string]func() is not supported")},
+				{name: "unsafe pointer", q: q, v: &map[string]unsafe.Pointer{}, err: fmt.Errorf("map[string]unsafe.Pointer is not supported")},
+			})
+		})
+
+		t.Run("supported value type", func(t *testing.T) {
+			runDecodeTest(t, []decodeCase{
+				{name: "single key name", q: "hoge=a", v: &qstring.Q{}, expected: qstring.Q{"hoge": "a"}},
+				{name: "multiple key name", q: "hoge=a&fuga=1", v: &qstring.Q{}, expected: qstring.Q{"hoge": "a", "fuga": "1"}},
+				{name: "duplicate key name", q: "hoge=a&hoge=1", v: &qstring.Q{}, expected: qstring.Q{"hoge": []string{"a", "1"}}},
+				{name: "array key", q: "hoge[]=a&hoge[]=2&hoge[]=3", v: &qstring.Q{}, expected: qstring.Q{"hoge": []string{"a", "2", "3"}}},
+				{name: "index array key", q: "hoge[0]=a&hoge[1]=2&hoge[2]=3", v: &qstring.Q{}, expected: qstring.Q{"hoge": []string{"a", "2", "3"}}},
+				{name: "nested array and array", q: "hoge[0][0]=a&hoge[0][1]=2&hoge[0][2]=3", v: &qstring.Q{}, expected: qstring.Q{"hoge": qstring.S{[]string{"a", "2", "3"}}}},
+				{name: "nested map and array", q: "hoge[a][0]=a&hoge[a][1]=2&hoge[a][2]=3", v: &qstring.Q{}, expected: qstring.Q{"hoge": qstring.Q{"a": []string{"a", "2", "3"}}}},
+				{name: "nested map and map", q: "hoge[a][b]=a&hoge[a][1]=2&hoge[0][a]=3", v: &qstring.Q{}, expected: qstring.Q{"hoge": qstring.Q{"0": qstring.Q{"a": "3"}, "a": qstring.Q{"1": "2", "b": "a"}}}},
+			})
 		})
 	})
 
 	t.Run("struct", func(t *testing.T) {
+		t.Run("unsupported field type", func(t *testing.T) {
+			q := "field=1"
+			runDecodeTest(t, []decodeCase{
+				{name: "complex128", q: q, v: &struct {
+					Field complex128 `qstring:"field"`
+				}{Field: complex128(0)}, err: fmt.Errorf("complex128 is not supported")},
+				{name: "complex64", q: q, v: &struct {
+					Field complex64 `qstring:"field"`
+				}{Field: complex64(0)}, err: fmt.Errorf("complex64 is not supported")},
+				{name: "uintptr", q: q, v: &struct {
+					Field uintptr `qstring:"field"`
+				}{Field: uintptr(0)}, err: fmt.Errorf("uintptr is not supported")},
+				{name: "func", q: q, v: &struct {
+					Field func() `qstring:"field"`
+				}{Field: func() {}}, err: fmt.Errorf("func is not supported")},
+				{name: "unsafe pointer", q: q, v: &struct {
+					Field unsafe.Pointer `qstring:"field"`
+				}{Field: unsafe.Pointer(stringP("1"))}, err: fmt.Errorf("unsafe.Pointer is not supported")},
+			})
+		})
+
 		t.Run("bool", func(t *testing.T) {
 			type s struct {
 				Field bool `qstring:"field"`
@@ -600,20 +650,22 @@ func runDecodeTest(t *testing.T, testCases []decodeCase) {
 	}
 }
 
-func boolP(v bool) *bool              { return &v }
-func intP(v int) *int                 { return &v }
-func int8P(v int8) *int8              { return &v }
-func int16P(v int16) *int16           { return &v }
-func int32P(v int32) *int32           { return &v }
-func int64P(v int64) *int64           { return &v }
-func runeP(v rune) *rune              { return &v }
-func uint8P(v uint8) *uint8           { return &v }
-func uintP(v uint) *uint              { return &v }
-func uint16P(v uint16) *uint16        { return &v }
-func uint32P(v uint32) *uint32        { return &v }
-func uint64P(v uint64) *uint64        { return &v }
-func byteP(v byte) *byte              { return &v }
-func float64P(v float64) *float64     { return &v }
-func float32P(v float32) *float32     { return &v }
-func stringP(v string) *string        { return &v }
-func unsafeP(v string) unsafe.Pointer { return unsafe.Pointer(stringP(v)) }
+func boolP(v bool) *bool                   { return &v }
+func intP(v int) *int                      { return &v }
+func int8P(v int8) *int8                   { return &v }
+func int16P(v int16) *int16                { return &v }
+func int32P(v int32) *int32                { return &v }
+func int64P(v int64) *int64                { return &v }
+func runeP(v rune) *rune                   { return &v }
+func uint8P(v uint8) *uint8                { return &v }
+func uintP(v uint) *uint                   { return &v }
+func uint16P(v uint16) *uint16             { return &v }
+func uint32P(v uint32) *uint32             { return &v }
+func uint64P(v uint64) *uint64             { return &v }
+func byteP(v byte) *byte                   { return &v }
+func float64P(v float64) *float64          { return &v }
+func float32P(v float32) *float32          { return &v }
+func complex128P(v complex128) *complex128 { return &v }
+func complex64P(v complex64) *complex64    { return &v }
+func stringP(v string) *string             { return &v }
+func unsafeP(v string) unsafe.Pointer      { return unsafe.Pointer(stringP(v)) }

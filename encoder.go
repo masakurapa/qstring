@@ -107,13 +107,13 @@ func (e *encoder) encodeMap(key string, rv reflect.Value) error {
 		return nil
 	}
 
+	rt := rv.Type()
+	if rt.Key().Kind() != reflect.String {
+		return &UnsupportedTypeError{rt}
+	}
+
 	iter := rv.MapRange()
 	for iter.Next() {
-		// map key must be a string
-		if iter.Key().Kind() != reflect.String {
-			return &UnsupportedTypeError{rv.Type()}
-		}
-
 		if err := e.encodeByType(e.makeMapKey(key, iter.Key().String()), iter.Value()); err != nil {
 			return err
 		}
