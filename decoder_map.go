@@ -43,7 +43,7 @@ func (d *decoder) setMap(rv reflect.Value, uvm urlValueMap) error {
 		// nested array or map
 		val := d.makeMapValueRecursive(uv.child)
 		if q, ok := val.(Q); ok {
-			if aq, ok := d.toArrayQ(q); ok {
+			if aq, ok := d.toSlice(q); ok {
 				rv.SetMapIndex(reflect.ValueOf(uv.key), reflect.ValueOf(aq))
 				continue
 			}
@@ -70,13 +70,13 @@ func (d *decoder) makeMapValueRecursive(valueMap urlValueMap) interface{} {
 		q[uv.key] = d.makeMapValueRecursive(uv.child)
 	}
 
-	if aq, ok := d.toArrayQ(q); ok {
+	if aq, ok := d.toSlice(q); ok {
 		return aq
 	}
 	return q
 }
 
-func (d *decoder) toArrayQ(q Q) (ArrayQ, bool) {
+func (d *decoder) toSlice(q Q) (S, bool) {
 	type tmpAq struct {
 		key   string
 		value interface{}
@@ -94,7 +94,7 @@ func (d *decoder) toArrayQ(q Q) (ArrayQ, bool) {
 		return tmp[i].key < tmp[j].key
 	})
 
-	aq := make(ArrayQ, 0, len(q))
+	aq := make(S, 0, len(q))
 	for _, v := range tmp {
 		aq = append(aq, v.value)
 	}

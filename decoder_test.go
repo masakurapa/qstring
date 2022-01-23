@@ -79,7 +79,7 @@ func TestDecode(t *testing.T) {
 			{name: "duplicate key name", q: "hoge=a&hoge=1", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": []string{"a", "1"}}},
 			{name: "array key", q: "hoge[]=a&hoge[]=2&hoge[]=3", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": []string{"a", "2", "3"}}},
 			{name: "index array key", q: "hoge[0]=a&hoge[1]=2&hoge[2]=3", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": []string{"a", "2", "3"}}},
-			{name: "nested array and array", q: "hoge[0][0]=a&hoge[0][1]=2&hoge[0][2]=3", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": qstring.ArrayQ{[]string{"a", "2", "3"}}}},
+			{name: "nested array and array", q: "hoge[0][0]=a&hoge[0][1]=2&hoge[0][2]=3", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": qstring.S{[]string{"a", "2", "3"}}}},
 			{name: "nested map and array", q: "hoge[a][0]=a&hoge[a][1]=2&hoge[a][2]=3", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": qstring.Q{"a": []string{"a", "2", "3"}}}},
 			{name: "nested map and map", q: "hoge[a][b]=a&hoge[a][1]=2&hoge[0][a]=3", v: func() *qstring.Q { var a qstring.Q; return &a }(), expected: qstring.Q{"hoge": qstring.Q{"0": qstring.Q{"a": "3"}, "a": qstring.Q{"1": "2", "b": "a"}}}},
 		})

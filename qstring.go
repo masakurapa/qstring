@@ -3,8 +3,8 @@ package qstring
 // Q is the type of the query string parameters.
 type Q map[string]interface{}
 
-// ArrayQ is a type of query string in array format.
-type ArrayQ []interface{}
+// S is a type of query string in slice format.
+type S []interface{}
 
 // Encode returns the URL-encoded query string.
 //

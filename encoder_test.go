@@ -177,8 +177,8 @@ func TestEncode(t *testing.T) {
 			runEncodeTest(t, []encodeCase{
 				{name: "string", q: qstring.Q{"key": []string{"1", "2", "3"}}, expected: "key[0]=1&key[1]=2&key[2]=3"},
 				{name: "string pointer", q: qstring.Q{"key": &[]string{"1", "2", "3"}}, expected: "key[0]=1&key[1]=2&key[2]=3"},
-				{name: "interface", q: qstring.Q{"key": qstring.ArrayQ{1, "2", true}}, expected: "key[0]=1&key[1]=2&key[2]=true"},
-				{name: "interface pointer", q: qstring.Q{"key": &qstring.ArrayQ{1, "2", true}}, expected: "key[0]=1&key[1]=2&key[2]=true"},
+				{name: "interface", q: qstring.Q{"key": qstring.S{1, "2", true}}, expected: "key[0]=1&key[1]=2&key[2]=true"},
+				{name: "interface pointer", q: qstring.Q{"key": &qstring.S{1, "2", true}}, expected: "key[0]=1&key[1]=2&key[2]=true"},
 			})
 		})
 
@@ -196,7 +196,7 @@ func TestEncode(t *testing.T) {
 				{
 					name: "string value map and interface value map into slice",
 					q: qstring.Q{
-						"key": qstring.ArrayQ{
+						"key": qstring.S{
 							map[string]string{"key1": "1", "key2": "2", "key3": "3"},
 							qstring.Q{"key1": 1, "key2": "2", "key3": true},
 						},
@@ -208,7 +208,7 @@ func TestEncode(t *testing.T) {
 					q: qstring.Q{
 						"key": qstring.Q{
 							"key1": []string{"1", "2", "3"},
-							"key2": qstring.ArrayQ{1, "2", true},
+							"key2": qstring.S{1, "2", true},
 						},
 					},
 					expected: "key[key1][0]=1&key[key1][1]=2&key[key1][2]=3&key[key2][0]=1&key[key2][1]=2&key[key2][2]=true",
