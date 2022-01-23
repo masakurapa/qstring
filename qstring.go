@@ -49,7 +49,7 @@ func DecodeToMap(s string) (Q, error) {
 	return v, nil
 }
 
-// DecodeToMap returns the URL-decoded query string as slice type
+// DecodeToSlice returns the URL-decoded query string as slice type
 func DecodeToSlice(s string) ([]string, error) {
 	var v []string
 	err := Decode(s, &v)
