@@ -15,7 +15,7 @@ type decoder struct {
 func (d *decoder) decode(v interface{}) error {
 	rv := reflect.ValueOf(v)
 	if rv.Kind() != reflect.Ptr || rv.IsNil() {
-		return &InvalidDecodeError{reflect.TypeOf(v)}
+		return &invalidDecodeError{reflect.TypeOf(v)}
 	}
 
 	rv = rv.Elem()
@@ -32,7 +32,7 @@ func (d *decoder) decode(v interface{}) error {
 		return d.decodeStruct(rv)
 	}
 
-	return &UnsupportedTypeError{rv.Type()}
+	return &unsupportedTypeError{rv.Type()}
 }
 
 func (d *decoder) decodeString(rv reflect.Value) error {
@@ -45,7 +45,7 @@ func (d *decoder) decodeString(rv reflect.Value) error {
 
 func (d *decoder) decodeArray(rv reflect.Value) error {
 	if rv.Type().Elem().Kind() != reflect.String {
-		return &UnsupportedTypeError{rv.Type()}
+		return &unsupportedTypeError{rv.Type()}
 	}
 
 	valueMap, err := d.createIntermediateStruct()
@@ -54,13 +54,13 @@ func (d *decoder) decodeArray(rv reflect.Value) error {
 	}
 
 	if len(valueMap) != 1 {
-		return &MultipleKeysError{}
+		return &multipleKeysError{}
 	}
 
 	arrVals := valueMap.firstValue()
 
 	if len(arrVals) > rv.Len() {
-		return &ArrayIndexOutOfRangeDecodeError{rv.Type(), len(arrVals)}
+		return &arrayIndexOutOfRangeDecodeError{rv.Type(), len(arrVals)}
 	}
 
 	arr := reflect.Indirect(reflect.New(reflect.ArrayOf(rv.Len(), rv.Type().Elem())))
@@ -74,7 +74,7 @@ func (d *decoder) decodeArray(rv reflect.Value) error {
 
 func (d *decoder) decodeSlice(rv reflect.Value) error {
 	if rv.Type().Elem().Kind() != reflect.String {
-		return &UnsupportedTypeError{rv.Type()}
+		return &unsupportedTypeError{rv.Type()}
 	}
 
 	valueMap, err := d.createIntermediateStruct()
@@ -83,7 +83,7 @@ func (d *decoder) decodeSlice(rv reflect.Value) error {
 	}
 
 	if len(valueMap) != 1 {
-		return &MultipleKeysError{}
+		return &multipleKeysError{}
 	}
 
 	rv.Set(reflect.AppendSlice(rv, reflect.ValueOf(valueMap.firstValue())))

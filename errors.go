@@ -5,12 +5,12 @@ import (
 	"strconv"
 )
 
-// UnsupportedTypeError is an error for unsupported types
-type UnsupportedTypeError struct {
+// unsupportedTypeError is an error for unsupported types
+type unsupportedTypeError struct {
 	rt reflect.Type
 }
 
-func (e *UnsupportedTypeError) Error() string {
+func (e *unsupportedTypeError) Error() string {
 	t := e.rt.String()
 	switch e.rt.Kind() {
 	case reflect.Func:
@@ -21,12 +21,12 @@ func (e *UnsupportedTypeError) Error() string {
 	return t + " is not supported"
 }
 
-// InvalidEncodeError is an error for unencodable arguments
-type InvalidEncodeError struct {
+// invalidEncodeError is an error for unencodable arguments
+type invalidEncodeError struct {
 	rt reflect.Type
 }
 
-func (e *InvalidEncodeError) Error() string {
+func (e *invalidEncodeError) Error() string {
 	if e.rt == nil {
 		return "nil is not supported"
 	}
@@ -35,11 +35,11 @@ func (e *InvalidEncodeError) Error() string {
 }
 
 // InvalidEncodeError is an error for undecodable arguments
-type InvalidDecodeError struct {
+type invalidDecodeError struct {
 	rt reflect.Type
 }
 
-func (e *InvalidDecodeError) Error() string {
+func (e *invalidDecodeError) Error() string {
 	if e.rt == nil {
 		return "nil is not supported"
 	}
@@ -49,33 +49,33 @@ func (e *InvalidDecodeError) Error() string {
 	return "nil " + e.rt.Kind().String() + " is not supported"
 }
 
-// ArrayIndexOutOfRangeDecodeError is an error
+// arrayIndexOutOfRangeDecodeError is an error
 // when the capacity of the array is exceeded during decoding
-type ArrayIndexOutOfRangeDecodeError struct {
+type arrayIndexOutOfRangeDecodeError struct {
 	rt  reflect.Type
 	len int
 }
 
-func (e *ArrayIndexOutOfRangeDecodeError) Error() string {
+func (e *arrayIndexOutOfRangeDecodeError) Error() string {
 	return "index out of range [" + strconv.Itoa(e.len) + "] with " + e.rt.String()
 }
 
-// NoAssignableValueError is an error
+// noAssignableValueError is an error
 // if the value cannot be assigned to a structure
-type NoAssignableValueError struct {
+type noAssignableValueError struct {
 	rt    reflect.Type
 	value string
 }
 
-func (e *NoAssignableValueError) Error() string {
+func (e *noAssignableValueError) Error() string {
 	return `"` + e.value + `" can not be assign to ` + e.rt.String()
 }
 
-// MultipleKeysError is an error
+// multipleKeysError is an error
 // when attempting to convert a query string with multiple keys
 // into an array or slice
-type MultipleKeysError struct{}
+type multipleKeysError struct{}
 
-func (e *MultipleKeysError) Error() string {
+func (e *multipleKeysError) Error() string {
 	return "cannot decode due to multiple keys"
 }

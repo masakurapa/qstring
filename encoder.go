@@ -19,7 +19,7 @@ type encoder struct {
 func (e *encoder) encode(v interface{}) (string, error) {
 	rv := reflect.ValueOf(v)
 	if v == nil || (rv.Kind() == reflect.Ptr && rv.IsNil()) {
-		return "", &InvalidEncodeError{reflect.TypeOf(v)}
+		return "", &invalidEncodeError{reflect.TypeOf(v)}
 	}
 
 	e.v = make(url.Values)
@@ -40,7 +40,7 @@ func (e *encoder) encode(v interface{}) (string, error) {
 	case reflect.String:
 		return e.encodeString(rv), nil
 	default:
-		return "", &UnsupportedTypeError{rv.Type()}
+		return "", &unsupportedTypeError{rv.Type()}
 	}
 
 	if len(e.v) == 0 {
@@ -88,7 +88,7 @@ func (e *encoder) encodeByType(key string, rv reflect.Value) error {
 		}
 		return e.encodeByType(key, reflect.Indirect(rv))
 	default:
-		return &UnsupportedTypeError{rv.Type()}
+		return &unsupportedTypeError{rv.Type()}
 	}
 
 	return nil
@@ -119,7 +119,7 @@ func (e *encoder) encodeMap(key string, rv reflect.Value) error {
 
 	rt := rv.Type()
 	if rt.Key().Kind() != reflect.String {
-		return &UnsupportedTypeError{rt}
+		return &unsupportedTypeError{rt}
 	}
 
 	iter := rv.MapRange()

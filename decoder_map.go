@@ -8,7 +8,7 @@ import (
 
 func (d *decoder) decodeMap(rv reflect.Value) error {
 	if rv.Type().Key().Kind() != reflect.String || rv.Type().Elem().Kind() != reflect.Interface {
-		return &UnsupportedTypeError{rv.Type()}
+		return &unsupportedTypeError{rv.Type()}
 	}
 
 	valueMap, err := d.createIntermediateStruct()
